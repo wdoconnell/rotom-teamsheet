@@ -87,7 +87,11 @@ interface PokeApiStatResponse {
   stat: PokeApiStat
 }
 
-const applyNatures = (stats: PokemonStats, nature: Nature) => {}
+const applyNatures = (stats: PokemonStats, n: keyof typeof nature) => {
+  const modifiers = nature[n]
+
+  // Next step is to coordinate this
+}
 
 const addEVs = (baseStats: PokemonStats, evs: ParsedEvs): PokemonStats => {
   return {
@@ -140,9 +144,6 @@ const parseStats = (
         break
     }
   })
-
-  console.log("Base Stats")
-  console.log(stats)
 
   const withEvs = addEVs(stats, evs)
   return withEvs
@@ -251,6 +252,11 @@ const parseEvs = (evString: string) => {
   return parsedEVs
 }
 
+interface StatApplication {
+  up: keyof typeof EVOptions
+  down: keyof typeof EVOptions
+}
+
 console.log("Fetching poke paste")
 const result = await fetch(paste)
 const pasteResponse: PokePasteResponse = await result.json()
@@ -308,3 +314,107 @@ pkmnArr.forEach(async (poke) => {
   console.log("after EVs")
   console.log({ parsedPkmnStats })
 })
+
+// Records natures
+const nature: Record<string, StatApplication> = {
+  Hardy: {
+    up: EVOptions.Atk,
+    down: EVOptions.Atk,
+  },
+  Lonely: {
+    up: EVOptions.Atk,
+    down: EVOptions.Def,
+  },
+  Adamant: {
+    up: EVOptions.Atk,
+    down: EVOptions.SpA,
+  },
+  Naughty: {
+    up: EVOptions.Atk,
+    down: EVOptions.SpD,
+  },
+  Brave: {
+    up: EVOptions.Atk,
+    down: EVOptions.Spe,
+  },
+  Bold: {
+    up: EVOptions.Def,
+    down: EVOptions.Atk,
+  },
+  Docile: {
+    up: EVOptions.Def,
+    down: EVOptions.Def,
+  },
+  Impish: {
+    up: EVOptions.Def,
+    down: EVOptions.SpA,
+  },
+  Lax: {
+    up: EVOptions.Def,
+    down: EVOptions.SpD,
+  },
+  Relaxed: {
+    up: EVOptions.Def,
+    down: EVOptions.Spe,
+  },
+  Modest: {
+    up: EVOptions.SpA,
+    down: EVOptions.Atk,
+  },
+  Mild: {
+    up: EVOptions.SpA,
+    down: EVOptions.Def,
+  },
+  Bashful: {
+    up: EVOptions.SpA,
+    down: EVOptions.SpA,
+  },
+  Rash: {
+    up: EVOptions.SpA,
+    down: EVOptions.SpD,
+  },
+  Quiet: {
+    up: EVOptions.SpA,
+    down: EVOptions.Spe,
+  },
+  Calm: {
+    up: EVOptions.SpD,
+    down: EVOptions.Atk,
+  },
+  Gentle: {
+    up: EVOptions.SpD,
+    down: EVOptions.Def,
+  },
+  Careful: {
+    up: EVOptions.SpD,
+    down: EVOptions.SpA,
+  },
+  Quirky: {
+    up: EVOptions.SpD,
+    down: EVOptions.SpD,
+  },
+  Sassy: {
+    up: EVOptions.SpD,
+    down: EVOptions.Spe,
+  },
+  Timid: {
+    up: EVOptions.Spe,
+    down: EVOptions.Atk,
+  },
+  Hasty: {
+    up: EVOptions.Spe,
+    down: EVOptions.Def,
+  },
+  Jolly: {
+    up: EVOptions.Spe,
+    down: EVOptions.SpA,
+  },
+  Naive: {
+    up: EVOptions.Spe,
+    down: EVOptions.SpD,
+  },
+  Serious: {
+    up: EVOptions.Spe,
+    down: EVOptions.Spe,
+  },
+}
