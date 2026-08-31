@@ -87,7 +87,25 @@ interface PokeApiStatResponse {
   stat: PokeApiStat
 }
 
-const parseStats = (responseArr: PokeApiStatResponse[]): PokemonStats => {
+const applyNatures = (stats: PokemonStats, nature: Nature) => {}
+
+const addEVs = (baseStats: PokemonStats, evs: ParsedEvs): PokemonStats => {
+  return {
+    // For HP, base + statspoints + 75
+    // https://bulbapedia.bulbagarden.net/wiki/Stat_point
+    HP: baseStats.HP + evs.hp + 75,
+    Atk: baseStats.Atk + evs.atk + 20,
+    Def: baseStats.Def + evs.def + 20,
+    SpAtk: baseStats.SpAtk + evs.spatk + 20,
+    SpDef: baseStats.SpDef + evs.spdef + 20,
+    Speed: baseStats.Speed + evs.speed + 20,
+  }
+}
+
+const parseStats = (
+  responseArr: PokeApiStatResponse[],
+  evs: ParsedEvs,
+): PokemonStats => {
   const stats: PokemonStats = {
     HP: 0,
     Atk: 0,
@@ -123,7 +141,11 @@ const parseStats = (responseArr: PokeApiStatResponse[]): PokemonStats => {
     }
   })
 
-  return stats
+  console.log("Base Stats")
+  console.log(stats)
+
+  const withEvs = addEVs(stats, evs)
+  return withEvs
 }
 
 //  stat: { name: 'hp', url: 'https://pokeapi.co/api/v2/stat/1/' }
@@ -279,8 +301,10 @@ pkmnArr.forEach(async (poke) => {
   )
 
   const json = await fetchResult.json()
+  const stats = json["stats"]
 
-  const parsedPkmnStats = parseStats(json["stats"])
   console.log({ name: poke.pokemonName })
+  const parsedPkmnStats = parseStats(stats, poke.EVs)
+  console.log("after EVs")
   console.log({ parsedPkmnStats })
 })
