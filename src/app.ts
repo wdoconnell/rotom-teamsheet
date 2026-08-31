@@ -1,3 +1,5 @@
+const paste = process.env.POKE_PASTE
+
 interface PokePasteResponse {
   author: string
   notes: string
@@ -55,8 +57,107 @@ interface ProcessedPokemonConfig {
 // - Heat Wave
 // - Thunderbolt
 // - Protect
-//
-//
+
+interface PokemonStats {
+  HP: number
+  Atk: number
+  Def: number
+  SpAtk: number
+  SpDef: number
+  Speed: number
+}
+
+const PokeApiStatNames = {
+  HP: "hp",
+  Atk: "attack",
+  Def: "defense",
+  SpAtk: "special-attack",
+  SpDef: "special-defense",
+  Speed: "speed",
+} as const
+
+interface PokeApiStat {
+  name: string
+  url: string
+}
+
+interface PokeApiStatResponse {
+  base_stat: number
+  effort: number
+  stat: PokeApiStat
+}
+
+const parseStats = (responseArr: PokeApiStatResponse[]): PokemonStats => {
+  const stats: PokemonStats = {
+    HP: 0,
+    Atk: 0,
+    Def: 0,
+    SpAtk: 0,
+    SpDef: 0,
+    Speed: 0,
+  }
+
+  // Assign stats based on the API response
+  responseArr.forEach((r) => {
+    switch (r.stat.name) {
+      case PokeApiStatNames.HP:
+        stats.HP = r.base_stat
+        break
+      case PokeApiStatNames.Atk:
+        stats.Atk = r.base_stat
+        break
+      case PokeApiStatNames.Def:
+        stats.Def = r.base_stat
+        break
+      case PokeApiStatNames.SpAtk:
+        stats.SpAtk = r.base_stat
+        break
+      case PokeApiStatNames.SpDef:
+        stats.SpDef = r.base_stat
+        break
+      case PokeApiStatNames.Speed:
+        stats.Speed = r.base_stat
+        break
+      default:
+        break
+    }
+  })
+
+  return stats
+}
+
+//  stat: { name: 'hp', url: 'https://pokeapi.co/api/v2/stat/1/' }
+// },
+// {
+//   base_stat: 134,
+//   effort: 3,
+//   stat: { name: 'attack', url: 'https://pokeapi.co/api/v2/stat/2/' }
+// },
+// {
+//   base_stat: 95,
+//   effort: 0,
+//   stat: { name: 'defense', url: 'https://pokeapi.co/api/v2/stat/3/' }
+// },
+// {
+//   base_stat: 100,
+//   effort: 0,
+//   stat: {
+//     name: 'special-attack',
+//     url: 'https://pokeapi.co/api/v2/stat/4/'
+//   }
+// },
+// {
+//   base_stat: 100,
+//   effort: 0,
+//   stat: {
+//     name: 'special-defense',
+//     url: 'https://pokeapi.co/api/v2/stat/5/'
+//   }
+// },
+// {
+//   base_stat: 80,
+//   effort: 0,
+//   stat: { name: 'speed', u
 
 const parseMoves = (moveLineArr: string[]): string[] =>
   moveLineArr.map((l) => l.split("- ")[1].trim())
@@ -128,16 +229,20 @@ const parseEvs = (evString: string) => {
   return parsedEVs
 }
 
-const result = await fetch("https://pokepast.es/e036b69f24be2220/json")
+console.log("Fetching poke paste")
+const result = await fetch(paste)
 const pasteResponse: PokePasteResponse = await result.json()
 // console.log(pasteResponse.paste)
 const lines = pasteResponse.paste.split("\r\n")
 
-const pkmnArr: PreParsePokemonConfig[] = []
+const pkmnArr: ProcessedPokemonConfig[] = []
 
 let count = 0
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
 // Each config is 10 lines.
+console.log("iterating over each value in result")
 for (let i = 0; i < lines.length; i += 10) {
   if (count === 6 || lines[0] === "") {
     break
@@ -157,5 +262,25 @@ for (let i = 0; i < lines.length; i += 10) {
   }
   count++
 
-  console.log({ pkmn })
+  pkmnArr.push(pkmn)
 }
+
+pkmnArr.forEach(async (poke) => {
+  // const name =
+  //   poke.pokemonName === "Floette-Eternal" ? "Floette" : poke.pokemonName
+  const name = poke.pokemonName
+  if (name === "Floette-Eternal" || name === "Basculegion") {
+    return
+  }
+
+  console.log(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`)
+  const fetchResult = await fetch(
+    `https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`,
+  )
+
+  const json = await fetchResult.json()
+
+  const parsedPkmnStats = parseStats(json["stats"])
+  console.log({ name: poke.pokemonName })
+  console.log({ parsedPkmnStats })
+})
