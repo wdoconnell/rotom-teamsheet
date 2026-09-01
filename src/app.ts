@@ -89,7 +89,7 @@ interface PokeApiStatResponse {
 
 const applyNatures = (stats: PokemonStats, n: keyof typeof Nature) => {
   const modifiers = Nature[n]
-  console.log({ modifiers })
+  // console.log({ modifiers })
 
   stats[modifiers.up] = Math.floor(stats[modifiers.up] * 1.1)
   stats[modifiers.down] = Math.floor(stats[modifiers.down] * 0.9)
@@ -261,7 +261,6 @@ interface StatApplication {
   down: keyof typeof StatOptions
 }
 
-console.log("Fetching poke paste")
 const result = await fetch(paste)
 const pasteResponse: PokePasteResponse = await result.json()
 // console.log(pasteResponse.paste)
@@ -274,7 +273,7 @@ let count = 0
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // Each config is 10 lines.
-console.log("iterating over each value in result")
+// console.log("iterating over each value in result")
 for (let i = 0; i < lines.length; i += 10) {
   if (count === 6 || lines[0] === "") {
     break
@@ -305,7 +304,7 @@ pkmnArr.forEach(async (poke) => {
     return
   }
 
-  console.log(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`)
+  // console.log(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`)
   const fetchResult = await fetch(
     `https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`,
   )
@@ -315,10 +314,10 @@ pkmnArr.forEach(async (poke) => {
 
   console.log({ name: poke.pokemonName })
   const parsedPkmnStats = parseStats(stats, poke.EVs)
-  console.log("after evs, before natures")
-  console.log({ parsedPkmnStats })
+  // console.log("after evs, before natures")
+  // console.log({ parsedPkmnStats })
   const withNatures = applyNatures(parsedPkmnStats, poke.nature)
-  console.log("after natures")
+  // console.log("after natures")
   console.log({ withNatures })
 })
 
