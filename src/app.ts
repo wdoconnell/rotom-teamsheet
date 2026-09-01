@@ -1,7 +1,5 @@
-import fs from "node:fs"
-import { PDF } from "@libpdf/core"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import { dirname, join } from "node:path"
+import { PDF, PDFPage } from "@libpdf/core"
+import { readFile, writeFile } from "node:fs/promises"
 
 const paste = process.env.POKE_PASTE
 
@@ -127,12 +125,9 @@ const Nature: Record<string, StatApplication> = {
   },
 }
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
 const FORM_LEFT_INDENT_X = 95
+const FORM_RIGHT_INDENT_X = 385
 const POKEMON_START_LEFT_ONE = 610
-const POKEMON_START_LEFT_TWO = 0
-const POKEMON_START_LEFT_THREE = 0
 const DIST_NAME_TO_ALIGNMENT = 26
 const DIST_ALIGNMENT_TO_ABILITY = 24
 const DIST_ABILITY_TO_ITEM = 25
@@ -144,7 +139,8 @@ const DIST_MOVE3_TO_MOVE4 = 23
 const FORM_X_DIST_TO_STATS = 175
 const DIST_TO_NEXT_STAT = 22
 
-const Y_DIST_TO_NEXT_POKE = 42
+const Y_DIST_TO_NEXT_POKE_PAGE_ONE = 41
+const Y_DIST_TO_NEXT_POKE_PAGE_TWO = 34
 
 interface PokePasteResponse {
   author: string
@@ -509,125 +505,161 @@ pkmnArr.forEach(async (poke) => {
 
   console.log({ consolidatedPkmnArr })
 
+  // Load the base teamsheet
   let pdfData = await readFile("teamlist.pdf")
-
   const pdf = await PDF.load(pdfData)
 
-  let currentYPos = POKEMON_START_LEFT_ONE
-
-  let currentXPos = FORM_LEFT_INDENT_X
-
+  // Start at page one
+  // TODO - should change this in the future
+  // To do both pages for the same pokemon at once.
   const page0 = pdf.getPage(0)
-  page0?.drawText(consolidatedPkmnArr[0].name, {
-    x: currentXPos,
-    y: currentYPos,
-  })
+  if (!page0) {
+    throw new Error("no page 0 in pdf")
+  }
 
-  currentYPos -= DIST_NAME_TO_ALIGNMENT
+  writePage(consolidatedPkmnArr, page0, true)
 
-  page0?.drawText(consolidatedPkmnArr[0].alignment, {
-    x: currentXPos,
-    y: currentYPos,
-  })
+  const page1 = pdf.getPage(1)
+  if (!page1) {
+    throw new Error("no page 1 in pdf")
+  }
 
-  currentYPos -= DIST_ALIGNMENT_TO_ABILITY
-
-  page0?.drawText(consolidatedPkmnArr[0].ability, {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= DIST_ABILITY_TO_ITEM
-
-  page0?.drawText(consolidatedPkmnArr[0].item, {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= DIST_ITEM_TO_MOVE1
-
-  page0?.drawText(consolidatedPkmnArr[0].move1, {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= DIST_MOVE1_TO_MOVE2
-
-  page0?.drawText(consolidatedPkmnArr[0].move2, {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= DIST_MOVE2_TO_MOVE3
-
-  page0?.drawText(consolidatedPkmnArr[0].move3, {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  // TODO - current fetching can result in different
-  // orders of getting info
-
-  currentYPos -= DIST_MOVE3_TO_MOVE4
-
-  page0?.drawText(consolidatedPkmnArr[0].move4, {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentXPos += FORM_X_DIST_TO_STATS
-  currentYPos =
-    POKEMON_START_LEFT_ONE - DIST_NAME_TO_ALIGNMENT - DIST_ALIGNMENT_TO_ABILITY
-
-  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.HP].toString(), {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= DIST_TO_NEXT_STAT
-
-  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.Atk].toString(), {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= DIST_TO_NEXT_STAT
-
-  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.Def].toString(), {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= DIST_TO_NEXT_STAT
-
-  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.SpA].toString(), {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= DIST_TO_NEXT_STAT
-
-  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.SpD].toString(), {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= DIST_TO_NEXT_STAT
-
-  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.Spe].toString(), {
-    x: currentXPos,
-    y: currentYPos,
-  })
-
-  currentYPos -= Y_DIST_TO_NEXT_POKE
-  currentXPos = FORM_LEFT_INDENT_X
-
-  page0?.drawText(consolidatedPkmnArr[1].name, {
-    x: currentXPos,
-    y: currentYPos,
-  })
+  writePage(consolidatedPkmnArr, page1, false)
 
   const newPdf = await pdf.save()
 
-  await writeFile("testfile.pdf", newPdf)
+  const currentDate = new Date().toDateString()
+
+  await writeFile(`teamlist-${currentDate}.pdf`, newPdf)
 })
+
+const writePage = (
+  pkmnArr: ConsolidatedPkmn[],
+  page: PDFPage,
+  showStats: boolean,
+) => {
+  // Initialize the starting positions on the teamsheet.
+  let currentYPos = POKEMON_START_LEFT_ONE
+  let currentXPos = FORM_LEFT_INDENT_X
+
+  for (let i = 0; i < 6; i++) {
+    // Decide which column to write in.
+    currentXPos = i >= 3 ? FORM_RIGHT_INDENT_X : FORM_LEFT_INDENT_X
+
+    // We reset the y-index at the third element
+    // so that it can be processed in the right column.
+    if (i === 3) {
+      // TODO - Rename this constant
+      currentYPos = POKEMON_START_LEFT_ONE
+    }
+
+    const originalYPos = currentYPos
+
+    page?.drawText(pkmnArr[i].name, {
+      x: currentXPos,
+      y: currentYPos,
+    })
+
+    currentYPos -= DIST_NAME_TO_ALIGNMENT
+
+    page?.drawText(pkmnArr[i].alignment, {
+      x: currentXPos,
+      y: currentYPos,
+    })
+
+    currentYPos -= DIST_ALIGNMENT_TO_ABILITY
+
+    page?.drawText(pkmnArr[i].ability, {
+      x: currentXPos,
+      y: currentYPos,
+    })
+
+    currentYPos -= DIST_ABILITY_TO_ITEM
+
+    page?.drawText(pkmnArr[i].item, {
+      x: currentXPos,
+      y: currentYPos,
+    })
+
+    currentYPos -= DIST_ITEM_TO_MOVE1
+
+    page?.drawText(pkmnArr[i].move1, {
+      x: currentXPos,
+      y: currentYPos,
+    })
+
+    currentYPos -= DIST_MOVE1_TO_MOVE2
+
+    page?.drawText(pkmnArr[i].move2, {
+      x: currentXPos,
+      y: currentYPos,
+    })
+
+    currentYPos -= DIST_MOVE2_TO_MOVE3
+
+    page?.drawText(pkmnArr[i].move3, {
+      x: currentXPos,
+      y: currentYPos,
+    })
+
+    // TODO - current fetching can result in different
+    // orders of getting info
+
+    currentYPos -= DIST_MOVE3_TO_MOVE4
+
+    page?.drawText(pkmnArr[i].move4, {
+      x: currentXPos,
+      y: currentYPos,
+    })
+
+    if (showStats) {
+      currentXPos += FORM_X_DIST_TO_STATS
+      currentYPos =
+        originalYPos - DIST_NAME_TO_ALIGNMENT - DIST_ALIGNMENT_TO_ABILITY
+
+      page?.drawText(pkmnArr[i].stats[StatOptions.HP].toString(), {
+        x: currentXPos,
+        y: currentYPos,
+      })
+
+      currentYPos -= DIST_TO_NEXT_STAT
+
+      page?.drawText(pkmnArr[i].stats[StatOptions.Atk].toString(), {
+        x: currentXPos,
+        y: currentYPos,
+      })
+
+      currentYPos -= DIST_TO_NEXT_STAT
+
+      page?.drawText(pkmnArr[i].stats[StatOptions.Def].toString(), {
+        x: currentXPos,
+        y: currentYPos,
+      })
+
+      currentYPos -= DIST_TO_NEXT_STAT
+
+      page?.drawText(pkmnArr[i].stats[StatOptions.SpA].toString(), {
+        x: currentXPos,
+        y: currentYPos,
+      })
+
+      currentYPos -= DIST_TO_NEXT_STAT
+
+      page?.drawText(pkmnArr[i].stats[StatOptions.SpD].toString(), {
+        x: currentXPos,
+        y: currentYPos,
+      })
+
+      currentYPos -= DIST_TO_NEXT_STAT
+
+      page?.drawText(pkmnArr[i].stats[StatOptions.Spe].toString(), {
+        x: currentXPos,
+        y: currentYPos,
+      })
+
+      currentYPos -= Y_DIST_TO_NEXT_POKE_PAGE_ONE
+    } else {
+      currentYPos -= Y_DIST_TO_NEXT_POKE_PAGE_TWO
+    }
+  }
+}
