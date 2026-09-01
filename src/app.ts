@@ -5,6 +5,128 @@ import { dirname, join } from "node:path"
 
 const paste = process.env.POKE_PASTE
 
+const StatOptions = {
+  HP: "HP",
+  Atk: "Atk",
+  Def: "Def",
+  SpA: "SpA",
+  SpD: "SpD",
+  Spe: "Spe",
+} as const
+
+interface PokemonStats {
+  [StatOptions.HP]: number
+  [StatOptions.Atk]: number
+  [StatOptions.Def]: number
+  [StatOptions.SpA]: number
+  [StatOptions.SpD]: number
+  [StatOptions.Spe]: number
+}
+
+// Records natures
+const Nature: Record<string, StatApplication> = {
+  Hardy: {
+    up: StatOptions.Atk,
+    down: StatOptions.Atk,
+  },
+  Lonely: {
+    up: StatOptions.Atk,
+    down: StatOptions.Def,
+  },
+  Adamant: {
+    up: StatOptions.Atk,
+    down: StatOptions.SpA,
+  },
+  Naughty: {
+    up: StatOptions.Atk,
+    down: StatOptions.SpD,
+  },
+  Brave: {
+    up: StatOptions.Atk,
+    down: StatOptions.Spe,
+  },
+  Bold: {
+    up: StatOptions.Def,
+    down: StatOptions.Atk,
+  },
+  Docile: {
+    up: StatOptions.Def,
+    down: StatOptions.Def,
+  },
+  Impish: {
+    up: StatOptions.Def,
+    down: StatOptions.SpA,
+  },
+  Lax: {
+    up: StatOptions.Def,
+    down: StatOptions.SpD,
+  },
+  Relaxed: {
+    up: StatOptions.Def,
+    down: StatOptions.Spe,
+  },
+  Modest: {
+    up: StatOptions.SpA,
+    down: StatOptions.Atk,
+  },
+  Mild: {
+    up: StatOptions.SpA,
+    down: StatOptions.Def,
+  },
+  Bashful: {
+    up: StatOptions.SpA,
+    down: StatOptions.SpA,
+  },
+  Rash: {
+    up: StatOptions.SpA,
+    down: StatOptions.SpD,
+  },
+  Quiet: {
+    up: StatOptions.SpA,
+    down: StatOptions.Spe,
+  },
+  Calm: {
+    up: StatOptions.SpD,
+    down: StatOptions.Atk,
+  },
+  Gentle: {
+    up: StatOptions.SpD,
+    down: StatOptions.Def,
+  },
+  Careful: {
+    up: StatOptions.SpD,
+    down: StatOptions.SpA,
+  },
+  Quirky: {
+    up: StatOptions.SpD,
+    down: StatOptions.SpD,
+  },
+  Sassy: {
+    up: StatOptions.SpD,
+    down: StatOptions.Spe,
+  },
+  Timid: {
+    up: StatOptions.Spe,
+    down: StatOptions.Atk,
+  },
+  Hasty: {
+    up: StatOptions.Spe,
+    down: StatOptions.Def,
+  },
+  Jolly: {
+    up: StatOptions.Spe,
+    down: StatOptions.SpA,
+  },
+  Naive: {
+    up: StatOptions.Spe,
+    down: StatOptions.SpD,
+  },
+  Serious: {
+    up: StatOptions.Spe,
+    down: StatOptions.Spe,
+  },
+}
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const FORM_LEFT_INDENT_X = 95
@@ -94,16 +216,6 @@ interface ConsolidatedPkmn {
 // - Heat Wave
 // - Thunderbolt
 // - Protect
-
-interface PokemonStats {
-  [StatOptions.HP]: number
-  [StatOptions.Atk]: number
-  [StatOptions.Def]: number
-  [StatOptions.SpA]: number
-  [StatOptions.SpD]: number
-  [StatOptions.Spe]: number
-}
-
 const PokeApiStatNames = {
   HP: "hp",
   Atk: "attack",
@@ -239,15 +351,6 @@ const parseGender = (
   }
 }
 
-const StatOptions = {
-  HP: "HP",
-  Atk: "Atk",
-  Def: "Def",
-  SpA: "SpA",
-  SpD: "SpD",
-  Spe: "Spe",
-} as const
-
 const parseEvs = (evString: string) => {
   const evs = evString.replace("EVs: ", "").split("/")
 
@@ -333,6 +436,25 @@ for (let i = 0; i < lines.length; i += 10) {
 
 let consolidatedPkmnArr: ConsolidatedPkmn[] = []
 
+const fetchBatch = []
+pkmnArr.forEach((poke) => {
+  fetchBatch.push(
+    fetch(
+      `https://pokeapi.co/api/v2/pokemon/${poke.pokemonName.toLowerCase()}/`,
+    ),
+  )
+})
+
+const result2 = await Promise.all(fetchBatch)
+
+const jsonResults = []
+
+for (let r of result2) {
+  const jsonResult = await r.json()
+  console.log({ jsonResult })
+  jsonResults.push(jsonResult)
+}
+
 pkmnArr.forEach(async (poke) => {
   // Skip floette eternal and basculegion
   // TODO -- need to add some tests to resolve names
@@ -342,13 +464,22 @@ pkmnArr.forEach(async (poke) => {
     return
   }
 
-  // console.log(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`)
-  const fetchResult = await fetch(
-    `https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`,
+  const foundPoke = jsonResults.find(
+    (p) => p.name.toLowerCase() === poke.pokemonName.toLowerCase(),
   )
+  console.log({ foundPoke })
 
-  const json = await fetchResult.json()
-  const stats = json["stats"]
+  const stats = foundPoke.stats
+
+  // DEPRECATED
+  // console.log(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`)
+  // const fetchResult = await fetch(
+  //   `https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`,
+  // )
+
+  // const json = await fetchResult.json()
+  // console.log({ RESULT: json })
+  // const stats = json["stats"]
 
   console.log({ name: poke.pokemonName })
   const parsedPkmnStats = parseStats(stats, poke.EVs)
@@ -500,107 +631,3 @@ pkmnArr.forEach(async (poke) => {
 
   await writeFile("testfile.pdf", newPdf)
 })
-
-// Records natures
-const Nature: Record<string, StatApplication> = {
-  Hardy: {
-    up: StatOptions.Atk,
-    down: StatOptions.Atk,
-  },
-  Lonely: {
-    up: StatOptions.Atk,
-    down: StatOptions.Def,
-  },
-  Adamant: {
-    up: StatOptions.Atk,
-    down: StatOptions.SpA,
-  },
-  Naughty: {
-    up: StatOptions.Atk,
-    down: StatOptions.SpD,
-  },
-  Brave: {
-    up: StatOptions.Atk,
-    down: StatOptions.Spe,
-  },
-  Bold: {
-    up: StatOptions.Def,
-    down: StatOptions.Atk,
-  },
-  Docile: {
-    up: StatOptions.Def,
-    down: StatOptions.Def,
-  },
-  Impish: {
-    up: StatOptions.Def,
-    down: StatOptions.SpA,
-  },
-  Lax: {
-    up: StatOptions.Def,
-    down: StatOptions.SpD,
-  },
-  Relaxed: {
-    up: StatOptions.Def,
-    down: StatOptions.Spe,
-  },
-  Modest: {
-    up: StatOptions.SpA,
-    down: StatOptions.Atk,
-  },
-  Mild: {
-    up: StatOptions.SpA,
-    down: StatOptions.Def,
-  },
-  Bashful: {
-    up: StatOptions.SpA,
-    down: StatOptions.SpA,
-  },
-  Rash: {
-    up: StatOptions.SpA,
-    down: StatOptions.SpD,
-  },
-  Quiet: {
-    up: StatOptions.SpA,
-    down: StatOptions.Spe,
-  },
-  Calm: {
-    up: StatOptions.SpD,
-    down: StatOptions.Atk,
-  },
-  Gentle: {
-    up: StatOptions.SpD,
-    down: StatOptions.Def,
-  },
-  Careful: {
-    up: StatOptions.SpD,
-    down: StatOptions.SpA,
-  },
-  Quirky: {
-    up: StatOptions.SpD,
-    down: StatOptions.SpD,
-  },
-  Sassy: {
-    up: StatOptions.SpD,
-    down: StatOptions.Spe,
-  },
-  Timid: {
-    up: StatOptions.Spe,
-    down: StatOptions.Atk,
-  },
-  Hasty: {
-    up: StatOptions.Spe,
-    down: StatOptions.Def,
-  },
-  Jolly: {
-    up: StatOptions.Spe,
-    down: StatOptions.SpA,
-  },
-  Naive: {
-    up: StatOptions.Spe,
-    down: StatOptions.SpD,
-  },
-  Serious: {
-    up: StatOptions.Spe,
-    down: StatOptions.Spe,
-  },
-}
