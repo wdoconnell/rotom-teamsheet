@@ -59,12 +59,12 @@ interface ProcessedPokemonConfig {
 // - Protect
 
 interface PokemonStats {
-  HP: number
-  Atk: number
-  Def: number
-  SpAtk: number
-  SpDef: number
-  Speed: number
+  [StatOptions.HP]: number
+  [StatOptions.Atk]: number
+  [StatOptions.Def]: number
+  [StatOptions.SpA]: number
+  [StatOptions.SpD]: number
+  [StatOptions.Spe]: number
 }
 
 const PokeApiStatNames = {
@@ -87,22 +87,26 @@ interface PokeApiStatResponse {
   stat: PokeApiStat
 }
 
-const applyNatures = (stats: PokemonStats, n: keyof typeof nature) => {
-  const modifiers = nature[n]
+const applyNatures = (stats: PokemonStats, n: keyof typeof Nature) => {
+  const modifiers = Nature[n]
+  console.log({ modifiers })
 
-  // Next step is to coordinate this
+  stats[modifiers.up] = Math.floor(stats[modifiers.up] * 1.1)
+  stats[modifiers.down] = Math.floor(stats[modifiers.down] * 0.9)
+
+  return stats
 }
 
 const addEVs = (baseStats: PokemonStats, evs: ParsedEvs): PokemonStats => {
   return {
     // For HP, base + statspoints + 75
     // https://bulbapedia.bulbagarden.net/wiki/Stat_point
-    HP: baseStats.HP + evs.hp + 75,
-    Atk: baseStats.Atk + evs.atk + 20,
-    Def: baseStats.Def + evs.def + 20,
-    SpAtk: baseStats.SpAtk + evs.spatk + 20,
-    SpDef: baseStats.SpDef + evs.spdef + 20,
-    Speed: baseStats.Speed + evs.speed + 20,
+    HP: baseStats[StatOptions.HP] + evs.hp + 75,
+    Atk: baseStats[StatOptions.Atk] + evs.atk + 20,
+    Def: baseStats[StatOptions.Def] + evs.def + 20,
+    SpA: baseStats[StatOptions.SpA] + evs.spatk + 20,
+    SpD: baseStats[StatOptions.SpD] + evs.spdef + 20,
+    Spe: baseStats[StatOptions.Spe] + evs.speed + 20,
   }
 }
 
@@ -114,9 +118,9 @@ const parseStats = (
     HP: 0,
     Atk: 0,
     Def: 0,
-    SpAtk: 0,
-    SpDef: 0,
-    Speed: 0,
+    SpA: 0,
+    SpD: 0,
+    Spe: 0,
   }
 
   // Assign stats based on the API response
@@ -132,13 +136,13 @@ const parseStats = (
         stats.Def = r.base_stat
         break
       case PokeApiStatNames.SpAtk:
-        stats.SpAtk = r.base_stat
+        stats.SpA = r.base_stat
         break
       case PokeApiStatNames.SpDef:
-        stats.SpDef = r.base_stat
+        stats.SpD = r.base_stat
         break
       case PokeApiStatNames.Speed:
-        stats.Speed = r.base_stat
+        stats.Spe = r.base_stat
         break
       default:
         break
@@ -198,7 +202,7 @@ const parseGender = (
   }
 }
 
-const EVOptions = {
+const StatOptions = {
   HP: "HP",
   Atk: "Atk",
   Def: "Def",
@@ -226,22 +230,22 @@ const parseEvs = (evString: string) => {
     const parsedStat = parseInt(value)
 
     switch (stat) {
-      case EVOptions.HP:
+      case StatOptions.HP:
         parsedEVs.hp = parsedStat
         break
-      case EVOptions.Atk:
+      case StatOptions.Atk:
         parsedEVs.atk = parsedStat
         break
-      case EVOptions.Def:
+      case StatOptions.Def:
         parsedEVs.def = parsedStat
         break
-      case EVOptions.SpA:
+      case StatOptions.SpA:
         parsedEVs.spatk = parsedStat
         break
-      case EVOptions.SpD:
+      case StatOptions.SpD:
         parsedEVs.spdef = parsedStat
         break
-      case EVOptions.Spe:
+      case StatOptions.Spe:
         parsedEVs.speed = parsedStat
         break
       default:
@@ -253,8 +257,8 @@ const parseEvs = (evString: string) => {
 }
 
 interface StatApplication {
-  up: keyof typeof EVOptions
-  down: keyof typeof EVOptions
+  up: keyof typeof StatOptions
+  down: keyof typeof StatOptions
 }
 
 console.log("Fetching poke paste")
@@ -311,110 +315,113 @@ pkmnArr.forEach(async (poke) => {
 
   console.log({ name: poke.pokemonName })
   const parsedPkmnStats = parseStats(stats, poke.EVs)
-  console.log("after EVs")
+  console.log("after evs, before natures")
   console.log({ parsedPkmnStats })
+  const withNatures = applyNatures(parsedPkmnStats, poke.nature)
+  console.log("after natures")
+  console.log({ withNatures })
 })
 
 // Records natures
-const nature: Record<string, StatApplication> = {
+const Nature: Record<string, StatApplication> = {
   Hardy: {
-    up: EVOptions.Atk,
-    down: EVOptions.Atk,
+    up: StatOptions.Atk,
+    down: StatOptions.Atk,
   },
   Lonely: {
-    up: EVOptions.Atk,
-    down: EVOptions.Def,
+    up: StatOptions.Atk,
+    down: StatOptions.Def,
   },
   Adamant: {
-    up: EVOptions.Atk,
-    down: EVOptions.SpA,
+    up: StatOptions.Atk,
+    down: StatOptions.SpA,
   },
   Naughty: {
-    up: EVOptions.Atk,
-    down: EVOptions.SpD,
+    up: StatOptions.Atk,
+    down: StatOptions.SpD,
   },
   Brave: {
-    up: EVOptions.Atk,
-    down: EVOptions.Spe,
+    up: StatOptions.Atk,
+    down: StatOptions.Spe,
   },
   Bold: {
-    up: EVOptions.Def,
-    down: EVOptions.Atk,
+    up: StatOptions.Def,
+    down: StatOptions.Atk,
   },
   Docile: {
-    up: EVOptions.Def,
-    down: EVOptions.Def,
+    up: StatOptions.Def,
+    down: StatOptions.Def,
   },
   Impish: {
-    up: EVOptions.Def,
-    down: EVOptions.SpA,
+    up: StatOptions.Def,
+    down: StatOptions.SpA,
   },
   Lax: {
-    up: EVOptions.Def,
-    down: EVOptions.SpD,
+    up: StatOptions.Def,
+    down: StatOptions.SpD,
   },
   Relaxed: {
-    up: EVOptions.Def,
-    down: EVOptions.Spe,
+    up: StatOptions.Def,
+    down: StatOptions.Spe,
   },
   Modest: {
-    up: EVOptions.SpA,
-    down: EVOptions.Atk,
+    up: StatOptions.SpA,
+    down: StatOptions.Atk,
   },
   Mild: {
-    up: EVOptions.SpA,
-    down: EVOptions.Def,
+    up: StatOptions.SpA,
+    down: StatOptions.Def,
   },
   Bashful: {
-    up: EVOptions.SpA,
-    down: EVOptions.SpA,
+    up: StatOptions.SpA,
+    down: StatOptions.SpA,
   },
   Rash: {
-    up: EVOptions.SpA,
-    down: EVOptions.SpD,
+    up: StatOptions.SpA,
+    down: StatOptions.SpD,
   },
   Quiet: {
-    up: EVOptions.SpA,
-    down: EVOptions.Spe,
+    up: StatOptions.SpA,
+    down: StatOptions.Spe,
   },
   Calm: {
-    up: EVOptions.SpD,
-    down: EVOptions.Atk,
+    up: StatOptions.SpD,
+    down: StatOptions.Atk,
   },
   Gentle: {
-    up: EVOptions.SpD,
-    down: EVOptions.Def,
+    up: StatOptions.SpD,
+    down: StatOptions.Def,
   },
   Careful: {
-    up: EVOptions.SpD,
-    down: EVOptions.SpA,
+    up: StatOptions.SpD,
+    down: StatOptions.SpA,
   },
   Quirky: {
-    up: EVOptions.SpD,
-    down: EVOptions.SpD,
+    up: StatOptions.SpD,
+    down: StatOptions.SpD,
   },
   Sassy: {
-    up: EVOptions.SpD,
-    down: EVOptions.Spe,
+    up: StatOptions.SpD,
+    down: StatOptions.Spe,
   },
   Timid: {
-    up: EVOptions.Spe,
-    down: EVOptions.Atk,
+    up: StatOptions.Spe,
+    down: StatOptions.Atk,
   },
   Hasty: {
-    up: EVOptions.Spe,
-    down: EVOptions.Def,
+    up: StatOptions.Spe,
+    down: StatOptions.Def,
   },
   Jolly: {
-    up: EVOptions.Spe,
-    down: EVOptions.SpA,
+    up: StatOptions.Spe,
+    down: StatOptions.SpA,
   },
   Naive: {
-    up: EVOptions.Spe,
-    down: EVOptions.SpD,
+    up: StatOptions.Spe,
+    down: StatOptions.SpD,
   },
   Serious: {
-    up: EVOptions.Spe,
-    down: EVOptions.Spe,
+    up: StatOptions.Spe,
+    down: StatOptions.Spe,
   },
 }
