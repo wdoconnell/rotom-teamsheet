@@ -1,6 +1,15 @@
 import { PDF, PDFPage } from "@libpdf/core"
 import { readFile, writeFile } from "node:fs/promises"
 
+// TODO - for local-only version, allow prompts
+// for filling in the addition information
+
+// TODO -- add tests
+
+// TODO -- refactor
+
+// TODO -- SEA archive for binary
+
 const paste = process.env.POKE_PASTE
 
 const StatOptions = {
@@ -447,7 +456,7 @@ const jsonResults = []
 
 for (let r of result2) {
   const jsonResult = await r.json()
-  console.log({ jsonResult })
+  // console.log({ jsonResult })
   jsonResults.push(jsonResult)
 }
 
@@ -463,7 +472,7 @@ pkmnArr.forEach(async (poke) => {
   const foundPoke = jsonResults.find(
     (p) => p.name.toLowerCase() === poke.pokemonName.toLowerCase(),
   )
-  console.log({ foundPoke })
+  // console.log({ foundPoke })
 
   const stats = foundPoke.stats
 
@@ -477,13 +486,13 @@ pkmnArr.forEach(async (poke) => {
   // console.log({ RESULT: json })
   // const stats = json["stats"]
 
-  console.log({ name: poke.pokemonName })
+  // console.log({ name: poke.pokemonName })
   const parsedPkmnStats = parseStats(stats, poke.EVs)
   // console.log("after evs, before natures")
   // console.log({ parsedPkmnStats })
   const withNatures = applyNatures(parsedPkmnStats, poke.nature)
   // console.log("after natures")
-  console.log({ withNatures })
+  // console.log({ withNatures })
   consolidatedPkmnArr.push({
     name: poke.pokemonName,
     alignment: poke.nature,
@@ -503,7 +512,7 @@ pkmnArr.forEach(async (poke) => {
     },
   })
 
-  console.log({ consolidatedPkmnArr })
+  // console.log({ consolidatedPkmnArr })
 
   // Load the base teamsheet
   let pdfData = await readFile("teamlist.pdf")
