@@ -22,6 +22,8 @@ const DIST_MOVE3_TO_MOVE4 = 23
 const FORM_X_DIST_TO_STATS = 175
 const DIST_TO_NEXT_STAT = 22
 
+const Y_DIST_TO_NEXT_POKE = 42
+
 interface PokePasteResponse {
   author: string
   notes: string
@@ -332,8 +334,9 @@ for (let i = 0; i < lines.length; i += 10) {
 let consolidatedPkmnArr: ConsolidatedPkmn[] = []
 
 pkmnArr.forEach(async (poke) => {
-  // const name =
-  //   poke.pokemonName === "Floette-Eternal" ? "Floette" : poke.pokemonName
+  // Skip floette eternal and basculegion
+  // TODO -- need to add some tests to resolve names
+  // maybe based on test list of everything in champions
   const name = poke.pokemonName
   if (name === "Floette-Eternal" || name === "Basculegion") {
     return
@@ -481,6 +484,14 @@ pkmnArr.forEach(async (poke) => {
   currentYPos -= DIST_TO_NEXT_STAT
 
   page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.Spe].toString(), {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= Y_DIST_TO_NEXT_POKE
+  currentXPos = FORM_LEFT_INDENT_X
+
+  page0?.drawText(consolidatedPkmnArr[1].name, {
     x: currentXPos,
     y: currentYPos,
   })
