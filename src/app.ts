@@ -1,4 +1,30 @@
+import fs from "node:fs"
+import { PDF } from "@libpdf/core"
+import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { dirname, join } from "node:path"
+
 const paste = process.env.POKE_PASTE
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const FORM_LEFT_INDENT_X = 95
+const POKEMON_START_LEFT_ONE = 610
+const POKEMON_START_LEFT_TWO = 0
+const POKEMON_START_LEFT_THREE = 0
+
+let pdfData = await readFile("teamlist.pdf")
+
+const pdf = await PDF.load(pdfData)
+
+const page0 = pdf.getPage(0)
+page0?.drawText("Sneasler", {
+  x: FORM_LEFT_INDENT_X,
+  y: POKEMON_START_LEFT_ONE,
+})
+
+const newPdf = await pdf.save()
+
+await writeFile("testfile.pdf", newPdf)
 
 interface PokePasteResponse {
   author: string
@@ -269,9 +295,6 @@ const lines = pasteResponse.paste.split("\r\n")
 const pkmnArr: ProcessedPokemonConfig[] = []
 
 let count = 0
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
 // Each config is 10 lines.
 // console.log("iterating over each value in result")
 for (let i = 0; i < lines.length; i += 10) {

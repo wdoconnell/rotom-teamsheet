@@ -18,6 +18,10 @@
   },
   "type": "module",
   "devDependencies": {
+    "@types/node": "^26.4.0",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@libpdf/core": "^0.4.1"
   }
 }
