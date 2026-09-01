@@ -11,20 +11,16 @@ const FORM_LEFT_INDENT_X = 95
 const POKEMON_START_LEFT_ONE = 610
 const POKEMON_START_LEFT_TWO = 0
 const POKEMON_START_LEFT_THREE = 0
+const DIST_NAME_TO_ALIGNMENT = 26
+const DIST_ALIGNMENT_TO_ABILITY = 24
+const DIST_ABILITY_TO_ITEM = 25
+const DIST_ITEM_TO_MOVE1 = 22
+const DIST_MOVE1_TO_MOVE2 = 23
+const DIST_MOVE2_TO_MOVE3 = 23
+const DIST_MOVE3_TO_MOVE4 = 23
 
-let pdfData = await readFile("teamlist.pdf")
-
-const pdf = await PDF.load(pdfData)
-
-const page0 = pdf.getPage(0)
-page0?.drawText("Sneasler", {
-  x: FORM_LEFT_INDENT_X,
-  y: POKEMON_START_LEFT_ONE,
-})
-
-const newPdf = await pdf.save()
-
-await writeFile("testfile.pdf", newPdf)
+const FORM_X_DIST_TO_STATS = 175
+const DIST_TO_NEXT_STAT = 22
 
 interface PokePasteResponse {
   author: string
@@ -60,15 +56,28 @@ interface ParsedEvs {
 
 interface ProcessedPokemonConfig {
   pokemonName: string
+  ability: string
   gender: (typeof Gender)[keyof typeof Gender]
   // Should probably make this strongly typed.
-  item?: string
+  item: string
   level: number
   EVs: ParsedEvs
   // Should also make this strongly typed
   nature: string
   // This could also be strongly typed.
   moves: string[]
+}
+
+interface ConsolidatedPkmn {
+  name: string
+  alignment: string
+  ability: string
+  item: string
+  move1: string
+  move2: string
+  move3: string
+  move4: string
+  stats: PokemonStats
 }
 
 // Format
@@ -307,6 +316,7 @@ for (let i = 0; i < lines.length; i += 10) {
   const pkmn: ProcessedPokemonConfig = {
     pokemonName: lines[i].split("(")[0].trim(),
     // Remove forcible cast
+    ability: lines[i + 1].split("Ability: ")[1].trim(),
     gender: parseGender(lines[i].split(/[()]/)[1]),
     item: lines[i].split("@ ")[1].trim(),
     level: parseInt(lines[i + 2].split("Level: ")[1]),
@@ -318,6 +328,8 @@ for (let i = 0; i < lines.length; i += 10) {
 
   pkmnArr.push(pkmn)
 }
+
+let consolidatedPkmnArr: ConsolidatedPkmn[] = []
 
 pkmnArr.forEach(async (poke) => {
   // const name =
@@ -342,6 +354,140 @@ pkmnArr.forEach(async (poke) => {
   const withNatures = applyNatures(parsedPkmnStats, poke.nature)
   // console.log("after natures")
   console.log({ withNatures })
+  consolidatedPkmnArr.push({
+    name: poke.pokemonName,
+    alignment: poke.nature,
+    ability: poke.ability,
+    item: poke.item,
+    move1: poke.moves[0],
+    move2: poke.moves[1],
+    move3: poke.moves[2],
+    move4: poke.moves[3],
+    stats: {
+      HP: withNatures[StatOptions.HP],
+      Atk: withNatures[StatOptions.Atk],
+      Def: withNatures[StatOptions.Def],
+      SpA: withNatures[StatOptions.SpA],
+      SpD: withNatures[StatOptions.SpD],
+      Spe: withNatures[StatOptions.Spe],
+    },
+  })
+
+  console.log({ consolidatedPkmnArr })
+
+  let pdfData = await readFile("teamlist.pdf")
+
+  const pdf = await PDF.load(pdfData)
+
+  let currentYPos = POKEMON_START_LEFT_ONE
+
+  let currentXPos = FORM_LEFT_INDENT_X
+
+  const page0 = pdf.getPage(0)
+  page0?.drawText(consolidatedPkmnArr[0].name, {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_NAME_TO_ALIGNMENT
+
+  page0?.drawText(consolidatedPkmnArr[0].alignment, {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_ALIGNMENT_TO_ABILITY
+
+  page0?.drawText(consolidatedPkmnArr[0].ability, {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_ABILITY_TO_ITEM
+
+  page0?.drawText(consolidatedPkmnArr[0].item, {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_ITEM_TO_MOVE1
+
+  page0?.drawText(consolidatedPkmnArr[0].move1, {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_MOVE1_TO_MOVE2
+
+  page0?.drawText(consolidatedPkmnArr[0].move2, {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_MOVE2_TO_MOVE3
+
+  page0?.drawText(consolidatedPkmnArr[0].move3, {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  // TODO - current fetching can result in different
+  // orders of getting info
+
+  currentYPos -= DIST_MOVE3_TO_MOVE4
+
+  page0?.drawText(consolidatedPkmnArr[0].move4, {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentXPos += FORM_X_DIST_TO_STATS
+  currentYPos =
+    POKEMON_START_LEFT_ONE - DIST_NAME_TO_ALIGNMENT - DIST_ALIGNMENT_TO_ABILITY
+
+  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.HP].toString(), {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_TO_NEXT_STAT
+
+  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.Atk].toString(), {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_TO_NEXT_STAT
+
+  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.Def].toString(), {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_TO_NEXT_STAT
+
+  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.SpA].toString(), {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_TO_NEXT_STAT
+
+  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.SpD].toString(), {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos -= DIST_TO_NEXT_STAT
+
+  page0?.drawText(consolidatedPkmnArr[0].stats[StatOptions.Spe].toString(), {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  const newPdf = await pdf.save()
+
+  await writeFile("testfile.pdf", newPdf)
 })
 
 // Records natures
