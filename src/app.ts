@@ -408,7 +408,7 @@ interface StatApplication {
 
 const result = await fetch(paste)
 const pasteResponse: PokePasteResponse = await result.json()
-// console.log(pasteResponse.paste)
+console.log(pasteResponse.paste)
 const lines = pasteResponse.paste.split("\r\n")
 
 const pkmnArr: ProcessedPokemonConfig[] = []
@@ -443,6 +443,15 @@ let consolidatedPkmnArr: ConsolidatedPkmn[] = []
 
 const fetchBatch = []
 pkmnArr.forEach((poke) => {
+  console.log(`Fetching ${poke.pokemonName}`)
+
+  if (
+    poke.pokemonName === "Floette-Eternal" ||
+    poke.pokemonName === "Basculegion"
+  ) {
+    return
+  }
+
   fetchBatch.push(
     fetch(
       `https://pokeapi.co/api/v2/pokemon/${poke.pokemonName.toLowerCase()}/`,
@@ -456,7 +465,6 @@ const jsonResults = []
 
 for (let r of result2) {
   const jsonResult = await r.json()
-  // console.log({ jsonResult })
   jsonResults.push(jsonResult)
 }
 
@@ -472,27 +480,12 @@ pkmnArr.forEach(async (poke) => {
   const foundPoke = jsonResults.find(
     (p) => p.name.toLowerCase() === poke.pokemonName.toLowerCase(),
   )
-  // console.log({ foundPoke })
+  console.log("found")
 
   const stats = foundPoke.stats
 
-  // DEPRECATED
-  // console.log(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`)
-  // const fetchResult = await fetch(
-  //   `https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}/`,
-  // )
-
-  // const json = await fetchResult.json()
-  // console.log({ RESULT: json })
-  // const stats = json["stats"]
-
-  // console.log({ name: poke.pokemonName })
   const parsedPkmnStats = parseStats(stats, poke.EVs)
-  // console.log("after evs, before natures")
-  // console.log({ parsedPkmnStats })
   const withNatures = applyNatures(parsedPkmnStats, poke.nature)
-  // console.log("after natures")
-  // console.log({ withNatures })
   consolidatedPkmnArr.push({
     name: poke.pokemonName,
     alignment: poke.nature,
@@ -511,8 +504,6 @@ pkmnArr.forEach(async (poke) => {
       Spe: withNatures[StatOptions.Spe],
     },
   })
-
-  // console.log({ consolidatedPkmnArr })
 
   // Load the base teamsheet
   let pdfData = await readFile("teamlist.pdf")
@@ -542,6 +533,8 @@ pkmnArr.forEach(async (poke) => {
   await writeFile(`teamlist-${currentDate}.pdf`, newPdf)
 })
 
+console.log("made it past forEach")
+
 const writePage = (
   pkmnArr: ConsolidatedPkmn[],
   page: PDFPage,
@@ -551,7 +544,7 @@ const writePage = (
   let currentYPos = POKEMON_START_LEFT_ONE
   let currentXPos = FORM_LEFT_INDENT_X
 
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < pkmnArr.length; i++) {
     // Decide which column to write in.
     currentXPos = i >= 3 ? FORM_RIGHT_INDENT_X : FORM_LEFT_INDENT_X
 
