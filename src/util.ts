@@ -352,9 +352,6 @@ export const generatePokemonStats = (
 ): ConsolidatedPkmn[] => {
   const consolidatedPkmnArr: ConsolidatedPkmn[] = []
 
-  console.log({ pkmnArr })
-  console.log({ dexResults })
-
   pkmnArr.forEach(async (poke) => {
     const foundPoke: PokeApiResult | undefined = dexResults.find(
       (p) => p.name.toLowerCase() === poke.pokemonName.toLowerCase(),

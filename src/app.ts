@@ -55,8 +55,6 @@ async function main() {
 
   const namedPkmnArr = handleCaps(consolidatedPkmnArr)
 
-  console.log({ namedPkmnArr })
-
   // Load the base teamsheet
   let pdfData = await readFile("teamlist.pdf")
   const pdf = await PDF.load(pdfData)

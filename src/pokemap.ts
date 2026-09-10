@@ -9,7 +9,6 @@ export const LongGenders = {
 const mapGender = (
   gAbbrev: (typeof Gender)[keyof typeof Gender],
 ): (typeof LongGenders)[keyof typeof LongGenders] => {
-  console.log({ gAbbrev })
   switch (gAbbrev) {
     case "M":
       return "male"
