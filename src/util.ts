@@ -6,7 +6,8 @@ import {
   StatOptions,
   type ConsolidatedPkmn,
   type ParsedEvs,
-  type PokeApiStatResponse,
+  type PokeApiResult,
+  type PokeApiStat,
   type PokemonStats,
   type ProcessedPokemonConfig,
 } from "./types.js"
@@ -23,6 +24,7 @@ import {
   FORM_RIGHT_INDENT_X,
   FORM_X_DIST_TO_STATS,
   POKEMON_START_LEFT_ONE,
+  POKES_TO_SKIP,
   Y_DIST_TO_NEXT_POKE_PAGE_ONE,
   Y_DIST_TO_NEXT_POKE_PAGE_TWO,
 } from "./constants.js"
@@ -182,7 +184,7 @@ const addEVs = (baseStats: PokemonStats, evs: ParsedEvs): PokemonStats => {
 }
 
 const parseStats = (
-  responseArr: PokeApiStatResponse[],
+  responseArr: PokeApiStat[],
   evs: ParsedEvs,
 ): PokemonStats => {
   const stats: PokemonStats = {
@@ -325,19 +327,35 @@ export const parsePokemonConfigs = (
 
 export const generatePokemonStats = (
   pkmnArr: ProcessedPokemonConfig[],
-  dexResults: Object[],
+  dexResults: PokeApiResult[],
 ): ConsolidatedPkmn[] => {
   const consolidatedPkmnArr: ConsolidatedPkmn[] = []
 
   pkmnArr.forEach(async (poke) => {
-    const foundPoke = dexResults.find(
+    const foundPoke: PokeApiResult | undefined = dexResults.find(
       (p) => p.name.toLowerCase() === poke.pokemonName.toLowerCase(),
     )
 
-    const stats = foundPoke.stats
+    if (POKES_TO_SKIP.includes(poke.pokemonName)) {
+      return
+    }
+
+    if (!foundPoke) {
+      throw new Error(`Error: Could not find stats for ${poke.pokemonName}`)
+    }
+
+    const { stats } = foundPoke
 
     const parsedPkmnStats = parseStats(stats, poke.EVs)
-    const withNatures = applyNatures(parsedPkmnStats, poke.nature)
+    const withNatures: PokemonStats | undefined = applyNatures(
+      parsedPkmnStats,
+      poke.nature,
+    )
+
+    if (!withNatures) {
+      throw new Error(`Error: Unable to apply natures for ${poke.pokemonName}`)
+    }
+
     consolidatedPkmnArr.push({
       name: poke.pokemonName,
       alignment: poke.nature,

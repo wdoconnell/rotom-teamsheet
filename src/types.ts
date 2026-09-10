@@ -2,7 +2,20 @@
 // currently only expose the needed fields
 // TODO - can this be pulled automatically?
 export interface PokeApiResult {
-  stats: any
+  id: number
+  name: string
+  stats: PokeApiStat[]
+}
+
+export interface PokeApiStatSrc {
+  name: string
+  url: string
+}
+
+export interface PokeApiStat {
+  base_stat: number
+  effort: number
+  stat: PokeApiStatSrc
 }
 
 export const StatOptions = {
@@ -192,10 +205,4 @@ export const PokeApiStatNames = {
 export interface PokeApiStat {
   name: string
   url: string
-}
-
-export interface PokeApiStatResponse {
-  base_stat: number
-  effort: number
-  stat: PokeApiStat
 }

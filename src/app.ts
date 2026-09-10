@@ -1,15 +1,19 @@
 import { PDF } from "@libpdf/core"
 import { readFile, writeFile } from "node:fs/promises"
-import { type PokePasteResponse, type ProcessedPokemonConfig } from "./types.js"
+import {
+  type PokeApiResult,
+  type PokePasteResponse,
+  type ProcessedPokemonConfig,
+} from "./types.js"
 import { POKEDEX_API_SOURCE_URL, POKES_TO_SKIP } from "./constants.js"
-import { generatePokemonStats, writePage } from "./util.js"
+import { generatePokemonStats, parsePokemonConfigs, writePage } from "./util.js"
 
 const paste = process.env.POKE_PASTE
 
 async function main() {
   // Until CLI is completed, there must be a poke paste provided.
   if (!paste) {
-    return
+    throw new Error("No pokemon paste provided. You must set a POKE_PASTE env.")
   }
 
   // Fetch the poke paste.
@@ -22,13 +26,11 @@ async function main() {
   const lines = pasteResponse.paste.split("\r\n")
 
   // We will generate an array of strongly typed pkmn configurations.
-  const pkmnArr: ProcessedPokemonConfig[] = []
+  const pkmnArr: ProcessedPokemonConfig[] = parsePokemonConfigs(lines)
 
-  // Batch fetches for efficiency.
+  // Batch fetches.
   const fetchBatch: Promise<any>[] = []
   pkmnArr.forEach((poke) => {
-    console.log(`Fetching ${poke.pokemonName}`)
-
     // Skip some until we resolve name/gender inconsistencies
     if (POKES_TO_SKIP.includes(poke.pokemonName)) {
       return
@@ -41,7 +43,7 @@ async function main() {
 
   const fetchResults = await Promise.all(fetchBatch)
 
-  const dexResults: Object[] = []
+  const dexResults: PokeApiResult[] = []
 
   for (let r of fetchResults) {
     const jsonResult = await r.json()
