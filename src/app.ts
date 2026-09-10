@@ -13,10 +13,14 @@ import {
   writePage,
 } from "./util.js"
 import { pasteNameToDexName } from "./pokemap.js"
+import { handleInput } from "./input.js"
 
 const paste = process.env.POKE_PASTE
 
 async function main() {
+  const inpResult = await handleInput()
+  console.log({ inpResult })
+
   // Until CLI is completed, there must be a poke paste provided.
   if (!paste) {
     throw new Error("No pokemon paste provided. You must set a POKE_PASTE env.")

@@ -206,3 +206,24 @@ export interface PokeApiStat {
   name: string
   url: string
 }
+
+interface DOB {
+  year: number
+  month: number
+  day: number
+}
+
+// Player Information
+// Struct of data to be entered into the PDF. No data is stored by this program.
+// It is simply input into local PDF instance.
+export interface PlayerInput {
+  playerName: string
+  trainerName: string
+  profileName: string
+  division: string
+  dob: DOB
+  playerID: number
+  supportID: string
+  switchProfileName: string
+  teamName: string
+}
