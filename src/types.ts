@@ -1,3 +1,10 @@
+// This is an incomplete interface, as we
+// currently only expose the needed fields
+// TODO - can this be pulled automatically?
+export interface PokeApiResult {
+  stats: any
+}
+
 export const StatOptions = {
   HP: "HP",
   Atk: "Atk",
