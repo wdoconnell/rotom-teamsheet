@@ -1,249 +1,47 @@
 import { PDF, PDFPage } from "@libpdf/core"
 import { readFile, writeFile } from "node:fs/promises"
+import {
+  Gender,
+  Nature,
+  PokeApiStatNames,
+  StatOptions,
+  type ConsolidatedPkmn,
+  type ParsedEvs,
+  type PokeApiStatResponse,
+  type PokemonStats,
+  type PokePasteResponse,
+  type ProcessedPokemonConfig,
+} from "./types.js"
+import {
+  DIST_ABILITY_TO_ITEM,
+  DIST_ALIGNMENT_TO_ABILITY,
+  DIST_ITEM_TO_MOVE1,
+  DIST_MOVE1_TO_MOVE2,
+  DIST_MOVE2_TO_MOVE3,
+  DIST_MOVE3_TO_MOVE4,
+  DIST_NAME_TO_ALIGNMENT,
+  DIST_TO_NEXT_STAT,
+  FORM_LEFT_INDENT_X,
+  FORM_RIGHT_INDENT_X,
+  FORM_X_DIST_TO_STATS,
+  POKEMON_START_LEFT_ONE,
+  Y_DIST_TO_NEXT_POKE_PAGE_ONE,
+  Y_DIST_TO_NEXT_POKE_PAGE_TWO,
+} from "./constants.js"
 
 // TODO - for local-only version, allow prompts
 // for filling in the addition information
-
 // TODO -- add tests
-
 // TODO -- refactor
-
 // TODO -- SEA archive for binary
 
 const paste = process.env.POKE_PASTE
-
-const StatOptions = {
-  HP: "HP",
-  Atk: "Atk",
-  Def: "Def",
-  SpA: "SpA",
-  SpD: "SpD",
-  Spe: "Spe",
-} as const
-
-interface PokemonStats {
-  [StatOptions.HP]: number
-  [StatOptions.Atk]: number
-  [StatOptions.Def]: number
-  [StatOptions.SpA]: number
-  [StatOptions.SpD]: number
-  [StatOptions.Spe]: number
-}
-
-// Records natures
-const Nature: Record<string, StatApplication> = {
-  Hardy: {
-    up: StatOptions.Atk,
-    down: StatOptions.Atk,
-  },
-  Lonely: {
-    up: StatOptions.Atk,
-    down: StatOptions.Def,
-  },
-  Adamant: {
-    up: StatOptions.Atk,
-    down: StatOptions.SpA,
-  },
-  Naughty: {
-    up: StatOptions.Atk,
-    down: StatOptions.SpD,
-  },
-  Brave: {
-    up: StatOptions.Atk,
-    down: StatOptions.Spe,
-  },
-  Bold: {
-    up: StatOptions.Def,
-    down: StatOptions.Atk,
-  },
-  Docile: {
-    up: StatOptions.Def,
-    down: StatOptions.Def,
-  },
-  Impish: {
-    up: StatOptions.Def,
-    down: StatOptions.SpA,
-  },
-  Lax: {
-    up: StatOptions.Def,
-    down: StatOptions.SpD,
-  },
-  Relaxed: {
-    up: StatOptions.Def,
-    down: StatOptions.Spe,
-  },
-  Modest: {
-    up: StatOptions.SpA,
-    down: StatOptions.Atk,
-  },
-  Mild: {
-    up: StatOptions.SpA,
-    down: StatOptions.Def,
-  },
-  Bashful: {
-    up: StatOptions.SpA,
-    down: StatOptions.SpA,
-  },
-  Rash: {
-    up: StatOptions.SpA,
-    down: StatOptions.SpD,
-  },
-  Quiet: {
-    up: StatOptions.SpA,
-    down: StatOptions.Spe,
-  },
-  Calm: {
-    up: StatOptions.SpD,
-    down: StatOptions.Atk,
-  },
-  Gentle: {
-    up: StatOptions.SpD,
-    down: StatOptions.Def,
-  },
-  Careful: {
-    up: StatOptions.SpD,
-    down: StatOptions.SpA,
-  },
-  Quirky: {
-    up: StatOptions.SpD,
-    down: StatOptions.SpD,
-  },
-  Sassy: {
-    up: StatOptions.SpD,
-    down: StatOptions.Spe,
-  },
-  Timid: {
-    up: StatOptions.Spe,
-    down: StatOptions.Atk,
-  },
-  Hasty: {
-    up: StatOptions.Spe,
-    down: StatOptions.Def,
-  },
-  Jolly: {
-    up: StatOptions.Spe,
-    down: StatOptions.SpA,
-  },
-  Naive: {
-    up: StatOptions.Spe,
-    down: StatOptions.SpD,
-  },
-  Serious: {
-    up: StatOptions.Spe,
-    down: StatOptions.Spe,
-  },
-}
-
-const FORM_LEFT_INDENT_X = 95
-const FORM_RIGHT_INDENT_X = 385
-const POKEMON_START_LEFT_ONE = 610
-const DIST_NAME_TO_ALIGNMENT = 26
-const DIST_ALIGNMENT_TO_ABILITY = 24
-const DIST_ABILITY_TO_ITEM = 25
-const DIST_ITEM_TO_MOVE1 = 22
-const DIST_MOVE1_TO_MOVE2 = 23
-const DIST_MOVE2_TO_MOVE3 = 23
-const DIST_MOVE3_TO_MOVE4 = 23
-
-const FORM_X_DIST_TO_STATS = 175
-const DIST_TO_NEXT_STAT = 22
-
-const Y_DIST_TO_NEXT_POKE_PAGE_ONE = 41
-const Y_DIST_TO_NEXT_POKE_PAGE_TWO = 34
-
-interface PokePasteResponse {
-  author: string
-  notes: string
-  paste: string
-  title: string
-}
-
-const Gender = {
-  M: "M",
-  F: "F",
-  None: "",
-} as const
-
-interface PreParsePokemonConfig {
-  pokemonName: string
-  gender?: string
-  item?: string
-  level: number
-  EVs: string
-  nature: string
-  moves: string[]
-}
-
-interface ParsedEvs {
-  hp: number
-  def: number
-  spdef: number
-  atk: number
-  spatk: number
-  speed: number
-}
-
-interface ProcessedPokemonConfig {
-  pokemonName: string
-  ability: string
-  gender: (typeof Gender)[keyof typeof Gender]
-  // Should probably make this strongly typed.
-  item: string
-  level: number
-  EVs: ParsedEvs
-  // Should also make this strongly typed
-  nature: string
-  // This could also be strongly typed.
-  moves: string[]
-}
-
-interface ConsolidatedPkmn {
-  name: string
-  alignment: string
-  ability: string
-  item: string
-  move1: string
-  move2: string
-  move3: string
-  move4: string
-  stats: PokemonStats
-}
-
-// Format
-// The following, followed by a space, then another mon.
-
-// Dragonite (M) @ Dragoninite
-// Ability: Inner Focus
-// Level: 50
-// EVs: 1 HP / 1 Def / 32 SpA / 32 Spe
-// Modest Nature
-// - Dragon Pulse
-// - Heat Wave
-// - Thunderbolt
-// - Protect
-const PokeApiStatNames = {
-  HP: "hp",
-  Atk: "attack",
-  Def: "defense",
-  SpAtk: "special-attack",
-  SpDef: "special-defense",
-  Speed: "speed",
-} as const
-
-interface PokeApiStat {
-  name: string
-  url: string
-}
-
-interface PokeApiStatResponse {
-  base_stat: number
-  effort: number
-  stat: PokeApiStat
-}
-
 const applyNatures = (stats: PokemonStats, n: keyof typeof Nature) => {
   const modifiers = Nature[n]
-  // console.log({ modifiers })
+
+  if (!modifiers) {
+    return
+  }
 
   stats[modifiers.up] = Math.floor(stats[modifiers.up] * 1.1)
   stats[modifiers.down] = Math.floor(stats[modifiers.down] * 0.9)
@@ -307,39 +105,6 @@ const parseStats = (
   return withEvs
 }
 
-//  stat: { name: 'hp', url: 'https://pokeapi.co/api/v2/stat/1/' }
-// },
-// {
-//   base_stat: 134,
-//   effort: 3,
-//   stat: { name: 'attack', url: 'https://pokeapi.co/api/v2/stat/2/' }
-// },
-// {
-//   base_stat: 95,
-//   effort: 0,
-//   stat: { name: 'defense', url: 'https://pokeapi.co/api/v2/stat/3/' }
-// },
-// {
-//   base_stat: 100,
-//   effort: 0,
-//   stat: {
-//     name: 'special-attack',
-//     url: 'https://pokeapi.co/api/v2/stat/4/'
-//   }
-// },
-// {
-//   base_stat: 100,
-//   effort: 0,
-//   stat: {
-//     name: 'special-defense',
-//     url: 'https://pokeapi.co/api/v2/stat/5/'
-//   }
-// },
-// {
-//   base_stat: 80,
-//   effort: 0,
-//   stat: { name: 'speed', u
-
 const parseMoves = (moveLineArr: string[]): string[] =>
   moveLineArr.map((l) => l.split("- ")[1].trim())
 
@@ -401,11 +166,6 @@ const parseEvs = (evString: string) => {
   return parsedEVs
 }
 
-interface StatApplication {
-  up: keyof typeof StatOptions
-  down: keyof typeof StatOptions
-}
-
 const result = await fetch(paste)
 const pasteResponse: PokePasteResponse = await result.json()
 console.log(pasteResponse.paste)
@@ -415,7 +175,6 @@ const pkmnArr: ProcessedPokemonConfig[] = []
 
 let count = 0
 // Each config is 10 lines.
-// console.log("iterating over each value in result")
 for (let i = 0; i < lines.length; i += 10) {
   if (count === 6 || lines[0] === "") {
     break
@@ -425,7 +184,6 @@ for (let i = 0; i < lines.length; i += 10) {
   // TODO -- could probably handle this with a class
   const pkmn: ProcessedPokemonConfig = {
     pokemonName: lines[i].split("(")[0].trim(),
-    // Remove forcible cast
     ability: lines[i + 1].split("Ability: ")[1].trim(),
     gender: parseGender(lines[i].split(/[()]/)[1]),
     item: lines[i].split("@ ")[1].trim(),
@@ -441,7 +199,7 @@ for (let i = 0; i < lines.length; i += 10) {
 
 let consolidatedPkmnArr: ConsolidatedPkmn[] = []
 
-const fetchBatch = []
+const fetchBatch: Promise<any>[] = []
 pkmnArr.forEach((poke) => {
   console.log(`Fetching ${poke.pokemonName}`)
 
@@ -461,7 +219,7 @@ pkmnArr.forEach((poke) => {
 
 const result2 = await Promise.all(fetchBatch)
 
-const jsonResults = []
+const jsonResults: Object[] = []
 
 for (let r of result2) {
   const jsonResult = await r.json()
@@ -480,7 +238,6 @@ pkmnArr.forEach(async (poke) => {
   const foundPoke = jsonResults.find(
     (p) => p.name.toLowerCase() === poke.pokemonName.toLowerCase(),
   )
-  console.log("found")
 
   const stats = foundPoke.stats
 
@@ -603,9 +360,6 @@ const writePage = (
       x: currentXPos,
       y: currentYPos,
     })
-
-    // TODO - current fetching can result in different
-    // orders of getting info
 
     currentYPos -= DIST_MOVE3_TO_MOVE4
 
