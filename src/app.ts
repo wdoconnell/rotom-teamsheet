@@ -5,8 +5,14 @@ import {
   type PokePasteResponse,
   type ProcessedPokemonConfig,
 } from "./types.js"
-import { POKEDEX_API_SOURCE_URL, POKES_TO_SKIP } from "./constants.js"
-import { generatePokemonStats, parsePokemonConfigs, writePage } from "./util.js"
+import { POKEDEX_API_SOURCE_URL } from "./constants.js"
+import {
+  generatePokemonStats,
+  handleCaps,
+  parsePokemonConfigs,
+  writePage,
+} from "./util.js"
+import { pasteNameToDexName } from "./pokemap.js"
 
 const paste = process.env.POKE_PASTE
 
@@ -31,14 +37,9 @@ async function main() {
   // Batch fetches.
   const fetchBatch: Promise<any>[] = []
   pkmnArr.forEach((poke) => {
-    // Skip some until we resolve name/gender inconsistencies
-    if (POKES_TO_SKIP.includes(poke.pokemonName)) {
-      return
-    }
+    poke.pokemonName = pasteNameToDexName(poke)
 
-    fetchBatch.push(
-      fetch(`${POKEDEX_API_SOURCE_URL}${poke.pokemonName.toLowerCase()}/`),
-    )
+    fetchBatch.push(fetch(`${POKEDEX_API_SOURCE_URL}${poke.pokemonName}/`))
   })
 
   const fetchResults = await Promise.all(fetchBatch)
@@ -52,6 +53,10 @@ async function main() {
 
   const consolidatedPkmnArr = generatePokemonStats(pkmnArr, dexResults)
 
+  const namedPkmnArr = handleCaps(consolidatedPkmnArr)
+
+  console.log({ namedPkmnArr })
+
   // Load the base teamsheet
   let pdfData = await readFile("teamlist.pdf")
   const pdf = await PDF.load(pdfData)
@@ -64,7 +69,7 @@ async function main() {
   }
 
   // If so, write it.
-  writePage(consolidatedPkmnArr, page0, true)
+  writePage(namedPkmnArr, page0, true)
 
   // Check if there is a second page.
   const page1 = pdf.getPage(1)
@@ -73,7 +78,7 @@ async function main() {
   }
 
   // If so, write it.
-  writePage(consolidatedPkmnArr, page1, false)
+  writePage(namedPkmnArr, page1, false)
 
   // Save new PDF with today's date.
   const newPdf = await pdf.save()

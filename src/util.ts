@@ -24,10 +24,31 @@ import {
   FORM_RIGHT_INDENT_X,
   FORM_X_DIST_TO_STATS,
   POKEMON_START_LEFT_ONE,
-  POKES_TO_SKIP,
   Y_DIST_TO_NEXT_POKE_PAGE_ONE,
   Y_DIST_TO_NEXT_POKE_PAGE_TWO,
 } from "./constants.js"
+
+export const handleCaps = (pkmn: ConsolidatedPkmn[]): ConsolidatedPkmn[] => {
+  // Capitalize the first letter, and first letter after a hyphen.
+  pkmn.forEach((p) => {
+    // Always capitalize the first letter.
+    let name: string = p.name[0].toUpperCase()
+
+    // Capitalize the first letter after any hyphen or space
+    for (let i = 1; i < p.name.length; i++) {
+      if ((p.name[i] === "-" || p.name[i] === " ") && p.name[i + 1]) {
+        name += `-${p.name[i + 1].toUpperCase()}`
+        i++
+      } else {
+        name += p.name[i]
+      }
+    }
+
+    p.name = name
+  })
+
+  return pkmn
+}
 
 export const writePage = (
   pkmnArr: ConsolidatedPkmn[],
@@ -331,14 +352,13 @@ export const generatePokemonStats = (
 ): ConsolidatedPkmn[] => {
   const consolidatedPkmnArr: ConsolidatedPkmn[] = []
 
+  console.log({ pkmnArr })
+  console.log({ dexResults })
+
   pkmnArr.forEach(async (poke) => {
     const foundPoke: PokeApiResult | undefined = dexResults.find(
       (p) => p.name.toLowerCase() === poke.pokemonName.toLowerCase(),
     )
-
-    if (POKES_TO_SKIP.includes(poke.pokemonName)) {
-      return
-    }
 
     if (!foundPoke) {
       throw new Error(`Error: Could not find stats for ${poke.pokemonName}`)
