@@ -226,4 +226,5 @@ export interface PlayerInput {
   supportID: string
   switchProfileName: string
   teamName: string
+  url: string
 }

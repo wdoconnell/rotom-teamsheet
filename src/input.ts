@@ -7,6 +7,8 @@ const DIVISIONS = ["Juniors", "Seniors", "Masters"]
 export async function handleInput(): Promise<PlayerInput> {
   const rl = readline.createInterface({ input, output })
 
+  const url = await rl.question("Paste the URL of the poke paste to fetch\n")
+
   const playerName = await rl.question("Enter your player name.\n")
   const trainerName = await rl.question("Enter your trainer name.\n")
   const profileName = await rl.question("Enter your Switch profile name.\n")
@@ -33,6 +35,7 @@ export async function handleInput(): Promise<PlayerInput> {
   rl.close()
 
   return {
+    url,
     playerName,
     trainerName,
     profileName,

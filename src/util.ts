@@ -6,6 +6,7 @@ import {
   StatOptions,
   type ConsolidatedPkmn,
   type ParsedEvs,
+  type PlayerInput,
   type PokeApiResult,
   type PokeApiStat,
   type PokemonStats,
@@ -23,6 +24,8 @@ import {
   FORM_LEFT_INDENT_X,
   FORM_RIGHT_INDENT_X,
   FORM_X_DIST_TO_STATS,
+  PLAYER_NAME_AREA_INDENT_X,
+  PLAYER_NAME_AREA_START_Y,
   POKEMON_START_LEFT_ONE,
   Y_DIST_TO_NEXT_POKE_PAGE_ONE,
   Y_DIST_TO_NEXT_POKE_PAGE_TWO,
@@ -50,11 +53,21 @@ export const handleCaps = (pkmn: ConsolidatedPkmn[]): ConsolidatedPkmn[] => {
   return pkmn
 }
 
+const writeHeader = (page: PDFPage, playerInput: PlayerInput) => {
+  const currentYPos = PLAYER_NAME_AREA_START_Y
+  const currentXPos = PLAYER_NAME_AREA_INDENT_X
+
+  page.drawText(playerInput.playerName, { x: currentXPos, y: currentYPos })
+}
+
 export const writePage = (
   pkmnArr: ConsolidatedPkmn[],
   page: PDFPage,
   showStats: boolean,
+  playerInput: PlayerInput,
 ) => {
+  writeHeader(page, playerInput)
+
   // Initialize the starting positions on the teamsheet.
   let currentYPos = POKEMON_START_LEFT_ONE
   let currentXPos = FORM_LEFT_INDENT_X

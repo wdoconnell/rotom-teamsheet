@@ -15,19 +15,11 @@ import {
 import { pasteNameToDexName } from "./pokemap.js"
 import { handleInput } from "./input.js"
 
-const paste = process.env.POKE_PASTE
-
 async function main() {
   const inpResult = await handleInput()
-  console.log({ inpResult })
-
-  // Until CLI is completed, there must be a poke paste provided.
-  if (!paste) {
-    throw new Error("No pokemon paste provided. You must set a POKE_PASTE env.")
-  }
 
   // Fetch the poke paste.
-  const result = await fetch(paste)
+  const result = await fetch(`${inpResult.url}/json`)
 
   // Parse JSON from the poke paste.
   const pasteResponse: PokePasteResponse = await result.json()
@@ -71,7 +63,7 @@ async function main() {
   }
 
   // If so, write it.
-  writePage(namedPkmnArr, page0, true)
+  writePage(namedPkmnArr, page0, true, inpResult)
 
   // Check if there is a second page.
   const page1 = pdf.getPage(1)
@@ -80,7 +72,7 @@ async function main() {
   }
 
   // If so, write it.
-  writePage(namedPkmnArr, page1, false)
+  writePage(namedPkmnArr, page1, false, inpResult)
 
   // Save new PDF with today's date.
   const newPdf = await pdf.save()
