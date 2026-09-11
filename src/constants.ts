@@ -16,5 +16,5 @@ export const DIST_TO_NEXT_STAT = 22
 export const Y_DIST_TO_NEXT_POKE_PAGE_ONE = 41
 export const Y_DIST_TO_NEXT_POKE_PAGE_TWO = 34
 
-export const PLAYER_NAME_AREA_INDENT_X = 120
-export const PLAYER_NAME_AREA_START_Y = 660
+export const PLAYER_NAME_AREA_INDENT_X = 150
+export const PLAYER_NAME_AREA_START_Y = 705

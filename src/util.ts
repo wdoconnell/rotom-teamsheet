@@ -54,10 +54,69 @@ export const handleCaps = (pkmn: ConsolidatedPkmn[]): ConsolidatedPkmn[] => {
 }
 
 const writeHeader = (page: PDFPage, playerInput: PlayerInput) => {
-  const currentYPos = PLAYER_NAME_AREA_START_Y
-  const currentXPos = PLAYER_NAME_AREA_INDENT_X
+  let currentYPos = PLAYER_NAME_AREA_START_Y
+  let currentXPos = PLAYER_NAME_AREA_INDENT_X
 
   page.drawText(playerInput.playerName, { x: currentXPos, y: currentYPos })
+  currentYPos -= 20
+
+  page.drawText(playerInput.trainerName, { x: currentXPos, y: currentYPos })
+  currentYPos -= 20
+
+  page.drawText(playerInput.teamName, { x: currentXPos, y: currentYPos })
+  currentYPos -= 25
+
+  page.drawText(playerInput.switchProfileName, {
+    x: currentXPos,
+    y: currentYPos,
+  })
+
+  currentYPos = PLAYER_NAME_AREA_START_Y
+  currentXPos += 290
+
+  // Determine where to place division X
+  // based on whether masters, senior, or junior.
+  let divisionX = currentXPos
+  switch (playerInput.division) {
+    case "Juniors":
+      divisionX += 32
+      break
+    case "Seniors":
+      divisionX += 88
+      break
+    case "Masters":
+      divisionX += 139
+      break
+    default:
+      throw new Error("Error: Invalid division.")
+  }
+
+  page.drawText("X", {
+    x: divisionX,
+    y: currentYPos,
+  })
+
+  // PlayerID, DOB, and Support ID
+  // are not present on the opp list.
+  if (page.index > 0) {
+    return
+  }
+
+  currentYPos -= 20
+
+  page.drawText(playerInput.playerID.toString(), {
+    x: currentXPos,
+    y: currentYPos,
+  })
+  currentYPos -= 20
+
+  page.drawText(
+    `${playerInput.dob.month}                   ${playerInput.dob.day}          ${playerInput.dob.year}`,
+    { x: currentXPos, y: currentYPos },
+  )
+  currentYPos -= 25
+
+  page.drawText(playerInput.supportID, { x: currentXPos, y: currentYPos })
 }
 
 export const writePage = (
@@ -264,7 +323,7 @@ const parseMoves = (moveLineArr: string[]): string[] =>
   moveLineArr.map((l) => l.split("- ")[1].trim())
 
 const parseGender = (
-  genderString: string,
+  genderString: string | undefined,
 ): (typeof Gender)[keyof typeof Gender] => {
   switch (genderString) {
     case "M":
@@ -334,12 +393,21 @@ export const parsePokemonConfigs = (
       break
     }
 
+    // Split off everything after the @
+    const [name, _rest] = lines[i].split(" @ ").map((s) => s.trim())
+
+    // Match on gender, if existent
+    const genderMatch = name.match(/\((M|F)\)/)
+    const gender = parseGender(genderMatch?.[1])
+
+    const pokemonName = genderMatch ? name.split("(")[0].trim() : name
+
     // TODO -- need to add abilities and fix gender and name
     // TODO -- could probably handle this with a class
     const pkmn: ProcessedPokemonConfig = {
-      pokemonName: lines[i].split("(")[0].trim(),
+      pokemonName,
       ability: lines[i + 1].split("Ability: ")[1].trim(),
-      gender: parseGender(lines[i].split(/[()]/)[1]),
+      gender,
       item: lines[i].split("@ ")[1].trim(),
       level: parseInt(lines[i + 2].split("Level: ")[1]),
       EVs: parseEvs(lines[i + 3].trim()),
@@ -351,6 +419,7 @@ export const parsePokemonConfigs = (
         lines[i + 8],
       ]),
     }
+
     count++
 
     consolidatedPkmnArr.push(pkmn)
