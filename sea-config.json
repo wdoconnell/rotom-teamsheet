@@ -1,0 +1,12 @@
+{
+  "main": "dist/src/app.js",
+  "mainFormat": "module",
+  "output": "dist/exe",
+  "disableExperimentalSEAWarning": true,
+  "useSnapshot": false,
+  "useCodeCache": true,
+  "execArgv": ["--no-warnings", "--max-old-space-size=4096"],
+  "assets": {
+    "teamlist.pdf": "teamlist.pdf"
+  }
+}
