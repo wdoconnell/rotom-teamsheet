@@ -55,14 +55,13 @@ async function main() {
   let pdfData = await readFile("teamlist.pdf")
   const pdf = await PDF.load(pdfData)
 
-  // TODO - Could consider writing both at once.
   // Check if there is a first page.
   const page0 = pdf.getPage(0)
   if (!page0) {
     throw new Error("no page 0 in pdf")
   }
 
-  // If so, write it.
+  // If so, write the first page.
   writePage(namedPkmnArr, page0, true, inpResult)
 
   // Check if there is a second page.
