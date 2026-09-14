@@ -1,2 +1,1 @@
-This is a non-profit, open-source hobby project that allows Pokemon VGC players to generate VGC teamlists from Poke Pastes. 
-This project is not associated with Nintendo, The Pokemon Company International, Ltd. or the holder of any Pokemon-related copyright. This is intended for non-profit and educational use.
+This is a non-profit, open-source hobby project that allows Pokemon VGC players to generate VGC teamlists from Poke Pastes.  This project is not associated with Nintendo, The Pokemon Company International, Ltd. or the holder of any Pokemon-related copyright. This is intended for non-profit and educational use.
