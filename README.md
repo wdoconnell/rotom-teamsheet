@@ -49,6 +49,8 @@ To generate a valid teamsheet, follow the instructions below, enter the required
 
 ![Example](examples/terminal-example.gif)
 
+[Generated PDF](examples/example-generated-teamsheet.pdf)
+
 # Supported Platforms
 - Tested and working on OSX; presumed to work on Linux.
 
