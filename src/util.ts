@@ -24,6 +24,8 @@ import {
   FORM_LEFT_INDENT_X,
   FORM_RIGHT_INDENT_X,
   FORM_X_DIST_TO_STATS,
+  HP_STAT_ADJUST_CONSTANT,
+  NONHP_STAT_ADJUST_CONSTANT,
   PLAYER_NAME_AREA_INDENT_X,
   PLAYER_NAME_AREA_START_Y,
   POKEMON_START_LEFT_ONE,
@@ -265,14 +267,13 @@ const applyNatures = (stats: PokemonStats, n: keyof typeof Nature) => {
 
 const addEVs = (baseStats: PokemonStats, evs: ParsedEvs): PokemonStats => {
   return {
-    // For HP, base + statspoints + 75
     // https://bulbapedia.bulbagarden.net/wiki/Stat_point
-    HP: baseStats[StatOptions.HP] + evs.hp + 75,
-    Atk: baseStats[StatOptions.Atk] + evs.atk + 20,
-    Def: baseStats[StatOptions.Def] + evs.def + 20,
-    SpA: baseStats[StatOptions.SpA] + evs.spatk + 20,
-    SpD: baseStats[StatOptions.SpD] + evs.spdef + 20,
-    Spe: baseStats[StatOptions.Spe] + evs.speed + 20,
+    HP: baseStats[StatOptions.HP] + evs.hp + HP_STAT_ADJUST_CONSTANT,
+    Atk: baseStats[StatOptions.Atk] + evs.atk + NONHP_STAT_ADJUST_CONSTANT,
+    Def: baseStats[StatOptions.Def] + evs.def + NONHP_STAT_ADJUST_CONSTANT,
+    SpA: baseStats[StatOptions.SpA] + evs.spatk + NONHP_STAT_ADJUST_CONSTANT,
+    SpD: baseStats[StatOptions.SpD] + evs.spdef + NONHP_STAT_ADJUST_CONSTANT,
+    Spe: baseStats[StatOptions.Spe] + evs.speed + NONHP_STAT_ADJUST_CONSTANT,
   }
 }
 
@@ -402,8 +403,6 @@ export const parsePokemonConfigs = (
 
     const pokemonName = genderMatch ? name.split("(")[0].trim() : name
 
-    // TODO -- need to add abilities and fix gender and name
-    // TODO -- could probably handle this with a class
     const pkmn: ProcessedPokemonConfig = {
       pokemonName,
       ability: lines[i + 1].split("Ability: ")[1].trim(),
@@ -412,11 +411,13 @@ export const parsePokemonConfigs = (
       level: parseInt(lines[i + 2].split("Level: ")[1]),
       EVs: parseEvs(lines[i + 3].trim()),
       nature: lines[i + 4].split(" ")[0].trim(),
+      // Allow for possibility of empty moves
+      // For example, fake out + last resort movesets.
       moves: parseMoves([
-        lines[i + 5],
-        lines[i + 6],
-        lines[i + 7],
-        lines[i + 8],
+        lines[i + 5] ?? "",
+        lines[i + 6] ?? "",
+        lines[i + 7] ?? "",
+        lines[i + 8] ?? "",
       ]),
     }
 

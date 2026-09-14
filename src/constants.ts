@@ -22,3 +22,6 @@ export const FORM_X_DIST_TO_STATS = 175
 export const DIST_TO_NEXT_STAT = 22
 export const Y_DIST_TO_NEXT_POKE_PAGE_ONE = 41
 export const Y_DIST_TO_NEXT_POKE_PAGE_TWO = 34
+
+export const HP_STAT_ADJUST_CONSTANT = 75
+export const NONHP_STAT_ADJUST_CONSTANT = 20
