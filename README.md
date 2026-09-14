@@ -37,8 +37,12 @@ Rotom-Teamsheet is a Node application that converts Poke Pastes (pokepaste.es) c
 To generate a valid teamsheet, follow the instructions below, enter the required information when prompted. A PDF will be generated with your teamsheet at the directory in which Rotom-Teamsheet was run.
 
 # Requirements
-- Poke Paste (pokepaste.es, or other site with an identical API) link that discloses Pokemon EV spreads/moves/alignment.
+- A recent version of [NodeJS](https://nodejs.org/en).
+- A Poke Paste (pokepaste.es, or other site with an identical API) link disclosing Pokemon EV spreads/moves/alignment.
 - Live internet connection, for fetching the paste, and pokemon stat spreads. Only Pokemon data is fetched: data you input manually into the program (e.g., trainer name, trainer details) stays on your local machine.
+
+Understandably, the Poke Paste will not work if it does not include EV spreads. The program will not infer/divine/guess
+at EV spreads for you. :smile:
 
 # Installation
 `pnpm install`
