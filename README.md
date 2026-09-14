@@ -32,7 +32,7 @@
 ```
 
 # Introduction
-Rotom-Teamsheet is a Node application that converts Poke Pastes (pokepaste.es) containing statistics of Pokemon teams into a teamsheet for use at Pokemon VGC Local events.
+Rotom-Teamsheet is a Node application that converts Poke Pastes (pokepaste.es) containing statistics of Pokemon teams into a teamsheet for use at Pokemon VGC ("Video Game Competition") Local events.
 
 To generate a valid teamsheet, follow the instructions below, enter the required information when prompted. A PDF will be generated with your teamsheet at the directory in which Rotom-Teamsheet was run.
 
