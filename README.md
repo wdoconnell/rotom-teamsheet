@@ -39,7 +39,7 @@ To generate a valid teamsheet, follow the instructions below, enter the required
 # Requirements
 - A recent version of [NodeJS](https://nodejs.org/en).
 - A Poke Paste (pokepaste.es, or other site with an identical API) link disclosing Pokemon EV spreads/moves/alignment.
-- Live internet connection, for fetching the paste, and pokemon stat spreads. Only Pokemon data is fetched: data you input manually into the program (e.g., trainer name, trainer details) stays on your local machine.
+- Live internet connection, for fetching the paste, and pokemon stat spreads. Only Pokemon data is fetched using the internet. The other input manually entered into the program (e.g., trainer name, trainer details) stays on your local machine.
 
 Understandably, the Poke Paste will not work if it does not include EV spreads. The program will not infer/divine/guess
 at EV spreads for you. :smile:
