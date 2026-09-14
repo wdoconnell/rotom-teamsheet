@@ -47,6 +47,8 @@ To generate a valid teamsheet, follow the instructions below, enter the required
 # Running
 `pnpm run app`
 
+![Example](examples/terminal-example.gif)
+
 # Supported Platforms
 - Tested and working on OSX; presumed to work on Linux.
 
