@@ -79,14 +79,14 @@ const writeHeader = (page: PDFPage, playerInput: PlayerInput) => {
   // Determine where to place division X
   // based on whether masters, senior, or junior.
   let divisionX = currentXPos
-  switch (playerInput.division) {
-    case "Juniors":
+  switch (playerInput.division.toLowerCase()) {
+    case "juniors":
       divisionX += 32
       break
-    case "Seniors":
+    case "seniors":
       divisionX += 88
       break
-    case "Masters":
+    case "masters":
       divisionX += 139
       break
     default:

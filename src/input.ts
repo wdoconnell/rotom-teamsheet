@@ -9,8 +9,8 @@ export async function handleInput(): Promise<PlayerInput> {
 
   const url = await rl.question("Paste the URL of the poke paste to fetch\n")
 
-  const playerName = await rl.question("Enter your player name.\n")
-  const trainerName = await rl.question("Enter your trainer name.\n")
+  const playerName = await rl.question("Enter your player name (full name).\n")
+  const trainerName = await rl.question("Enter your trainer name (in game).\n")
   const profileName = await rl.question("Enter your Switch profile name.\n")
 
   let division = ""
@@ -20,9 +20,11 @@ export async function handleInput(): Promise<PlayerInput> {
     )
   }
 
-  const year = await rl.question("Enter your year of birth.\n")
-  const month = await rl.question("Enter your month of birth.\n")
-  const day = await rl.question("Enter your day of birth.\n")
+  const year = await rl.question(
+    "Enter the number of your year of birth (e.g., 1995).\n",
+  )
+  const month = await rl.question("Enter your month of birth (e.g., 01).\n")
+  const day = await rl.question("Enter your day of birth (e.g., 07).\n")
   const playerID = await rl.question("Enter your player ID number.\n")
   const supportID = await rl.question(
     "Enter your Pokemon Champions Support ID.\n",
@@ -30,7 +32,9 @@ export async function handleInput(): Promise<PlayerInput> {
   const switchProfileName = await rl.question(
     "Enter your Switch profile name.\n",
   )
-  const teamName = await rl.question("Enter your team's name.\n")
+  const teamName = await rl.question(
+    "Enter your team's name, as it appears in game.\n",
+  )
 
   rl.close()
 
