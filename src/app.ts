@@ -76,7 +76,7 @@ async function main() {
   // Save new PDF with today's date.
   const newPdf = await pdf.save()
   const currentDate = new Date().toDateString()
-  await writeFile(`teamlist-${currentDate}.pdf`, newPdf)
+  await writeFile(`generated-teamlist-${currentDate}.pdf`, newPdf)
 }
 
 main()
