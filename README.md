@@ -65,4 +65,4 @@ If you are experiencing an issue with the application, you are welcome to open a
 At this stage of project development, please do not submit direct proposals/contributions. It is anticipated that I will be rewriting this in a strongly typed language so that binaries can be generated without resort to a Node SEA implementation.
 
 # Thank-Yous
-Thanks to [Vanessa Sochat's Pokemon repository](https://github.com/vsoch/pokemon) repository for the Rotom ASCII-Art!
+Thanks to [Vanessa Sochat's Pokemon repository](https://github.com/vsoch/pokemon) for the Rotom ASCII-Art!
