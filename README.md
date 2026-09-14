@@ -45,11 +45,11 @@ Understandably, the Poke Paste will not work if it does not include EV spreads. 
 at EV spreads for you. :smile:
 
 # Installation
-`pnpm install`
-`pnpm build`
+- `pnpm install`
+- `pnpm build`
 
 # Running
-`pnpm run app`
+- `pnpm run app`
 
 ![Example](examples/terminal-example.gif)
 
