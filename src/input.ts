@@ -4,10 +4,18 @@ import type { PlayerInput } from "./types.js"
 
 const DIVISIONS = ["Juniors", "Seniors", "Masters"]
 
-export async function handleInput(): Promise<PlayerInput> {
+export async function handlePaste(): Promise<string> {
   const rl = readline.createInterface({ input, output })
 
   const url = await rl.question("Paste the URL of the poke paste to fetch\n")
+
+  rl.close()
+
+  return url
+}
+
+export async function handlePlayer(): Promise<PlayerInput> {
+  const rl = readline.createInterface({ input, output })
 
   const playerName = await rl.question("Enter your player name (full name).\n")
   const trainerName = await rl.question("Enter your trainer name (in game).\n")
@@ -39,7 +47,6 @@ export async function handleInput(): Promise<PlayerInput> {
   rl.close()
 
   return {
-    url,
     playerName,
     trainerName,
     profileName,
