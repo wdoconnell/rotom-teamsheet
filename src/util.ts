@@ -27,7 +27,8 @@ import {
   HP_STAT_ADJUST_CONSTANT,
   NONHP_STAT_ADJUST_CONSTANT,
   PLAYER_NAME_AREA_INDENT_X,
-  PLAYER_NAME_AREA_START_Y,
+  PLAYER_NAME_AREA_START_Y_ONE,
+  PLAYER_NAME_AREA_START_Y_TWO,
   POKEMON_START_LEFT_ONE,
   Y_DIST_TO_NEXT_POKE_PAGE_ONE,
   Y_DIST_TO_NEXT_POKE_PAGE_TWO,
@@ -55,8 +56,15 @@ export const handleCaps = (pkmn: ConsolidatedPkmn[]): ConsolidatedPkmn[] => {
   return pkmn
 }
 
-const writeHeader = (page: PDFPage, playerInput: PlayerInput) => {
-  let currentYPos = PLAYER_NAME_AREA_START_Y
+const writeHeader = (
+  page: PDFPage,
+  pageNumber: number,
+  playerInput: PlayerInput,
+) => {
+  let currentYPos =
+    pageNumber === 0
+      ? PLAYER_NAME_AREA_START_Y_ONE
+      : PLAYER_NAME_AREA_START_Y_TWO
   let currentXPos = PLAYER_NAME_AREA_INDENT_X
 
   page.drawText(playerInput.playerName, { x: currentXPos, y: currentYPos })
@@ -73,7 +81,10 @@ const writeHeader = (page: PDFPage, playerInput: PlayerInput) => {
     y: currentYPos,
   })
 
-  currentYPos = PLAYER_NAME_AREA_START_Y
+  currentYPos =
+    pageNumber === 0
+      ? PLAYER_NAME_AREA_START_Y_ONE
+      : PLAYER_NAME_AREA_START_Y_TWO
   currentXPos += 290
 
   // Determine where to place division X
@@ -124,10 +135,10 @@ const writeHeader = (page: PDFPage, playerInput: PlayerInput) => {
 export const writePage = (
   pkmnArr: ConsolidatedPkmn[],
   page: PDFPage,
-  showStats: boolean,
+  isJudgePage: boolean,
   playerInput: PlayerInput,
 ) => {
-  writeHeader(page, playerInput)
+  writeHeader(page, isJudgePage ? 0 : 1, playerInput)
 
   // Initialize the starting positions on the teamsheet.
   let currentYPos = POKEMON_START_LEFT_ONE
@@ -200,7 +211,7 @@ export const writePage = (
       y: currentYPos,
     })
 
-    if (showStats) {
+    if (isJudgePage) {
       currentXPos += FORM_X_DIST_TO_STATS
       currentYPos =
         originalYPos - DIST_NAME_TO_ALIGNMENT - DIST_ALIGNMENT_TO_ABILITY
