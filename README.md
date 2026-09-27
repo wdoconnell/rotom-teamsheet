@@ -56,6 +56,23 @@ at EV spreads for you. :smile:
 [Generated PDF](examples/example-generated-teamsheet.pdf)
 (Data entered is not real player data.)
 
+# Configuration
+To save your configuration, so that you do not need to type it each time, you can save a JSON file in `.playerconfig.json` with the following structure.
+
+After doing that, you will only need to enter the Poke Paste name, and the team name.
+
+```
+{
+  playerName: string
+  trainerName: string
+  division: string
+  dob: string [format should be MM-DD-YYYY]
+  playerID: number
+  supportID: string
+  switchProfileName: string
+}
+```
+
 # Supported Platforms
 - Tested and working on OSX; presumed to work on Linux.
 
