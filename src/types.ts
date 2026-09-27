@@ -219,7 +219,6 @@ interface DOB {
 export interface PlayerInput {
   playerName: string
   trainerName: string
-  profileName: string
   division: string
   dob: DOB
   playerID: number

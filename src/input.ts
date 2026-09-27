@@ -19,7 +19,9 @@ export async function handlePlayer(): Promise<PlayerInput> {
 
   const playerName = await rl.question("Enter your player name (full name).\n")
   const trainerName = await rl.question("Enter your trainer name (in game).\n")
-  const profileName = await rl.question("Enter your Switch profile name.\n")
+  const switchProfileName = await rl.question(
+    "Enter your Switch profile name.\n",
+  )
 
   let division = ""
   while (!DIVISIONS.includes(division)) {
@@ -37,9 +39,6 @@ export async function handlePlayer(): Promise<PlayerInput> {
   const supportID = await rl.question(
     "Enter your Pokemon Champions Support ID.\n",
   )
-  const switchProfileName = await rl.question(
-    "Enter your Switch profile name.\n",
-  )
   const teamName = await rl.question(
     "Enter your team's name, as it appears in game.\n",
   )
@@ -49,7 +48,6 @@ export async function handlePlayer(): Promise<PlayerInput> {
   return {
     playerName,
     trainerName,
-    profileName,
     division,
     dob: {
       year: parseInt(year),
