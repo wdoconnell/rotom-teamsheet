@@ -143,3 +143,5 @@ vite.config.ts.timestamp-*
 .vite/
 
 generated-teamlist*.pdf
+
+.playerconfig.json

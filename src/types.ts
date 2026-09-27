@@ -226,3 +226,13 @@ export interface PlayerInput {
   switchProfileName: string
   teamName: string
 }
+
+export interface JSONConfig {
+  playerName: string
+  trainerName: string
+  division: string
+  dob: string
+  playerID: number
+  supportID: string
+  switchProfileName: string
+}
