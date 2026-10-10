@@ -22,11 +22,16 @@ const mapGender = (
 export const pasteNameToDexName = (
   pkmnConfig: ProcessedPokemonConfig,
 ): string => {
-  const lowerCase = pkmnConfig.pokemonName.toLowerCase()
+  let lowerCase = pkmnConfig.pokemonName.toLowerCase()
   const gender = mapGender(pkmnConfig.gender)
 
   if (pkmnConfig.pokemonName === "Basculegion") {
-    return `${lowerCase}-${gender}`
+    lowerCase = `${lowerCase}-${gender}`
+  }
+
+  const megaIndicator = lowerCase.indexOf("-mega")
+  if (megaIndicator !== -1) {
+    return lowerCase.slice(0, megaIndicator)
   }
 
   return lowerCase
